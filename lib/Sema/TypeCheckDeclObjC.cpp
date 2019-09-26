@@ -1059,7 +1059,7 @@ static Optional<ObjCReason> shouldMarkClassAsObjC(const ClassDecl *CD) {
   auto ancestry = CD->checkAncestry();
 
   if (auto attr = CD->getAttrs().getAttribute<ObjCAttr>()) {
-    if (ancestry.contains(AncestryFlags::Generic)) {
+    if (ancestry.contains(AncestryFlags::SwiftGeneric)) {
       if (attr->hasName() && !CD->isGenericContext()) {
         // @objc with a name on a non-generic subclass of a generic class is
         // just controlling the runtime name. Don't diagnose this case.
@@ -1113,7 +1113,7 @@ static Optional<ObjCReason> shouldMarkClassAsObjC(const ClassDecl *CD) {
   }
 
   if (ancestry.contains(AncestryFlags::ObjC)) {
-    if (ancestry.contains(AncestryFlags::Generic)) {
+    if (ancestry.contains(AncestryFlags::SwiftGeneric)) {
       return None;
     }
 

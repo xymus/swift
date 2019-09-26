@@ -3716,6 +3716,10 @@ enum class AncestryFlags : uint8_t {
 
   /// The class or one of its superclasses requires stored property initializers.
   RequiresStoredPropertyInits = (1<<6),
+
+  /// The class or one of its superclasses is generic in Swift,
+  /// ignoring Objective-C genericity.
+  SwiftGeneric = (1<<7),
 };
 
 /// Return type of ClassDecl::checkAncestry(). Describes a set of interesting

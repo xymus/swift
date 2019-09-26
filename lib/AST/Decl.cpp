@@ -3949,8 +3949,11 @@ ClassAncestryFlagsRequest::evaluate(Evaluator &evaluator, ClassDecl *value) cons
     if (!visited.insert(CD).second)
       break;
 
-    if (CD->isGenericContext())
+    if (CD->isGenericContext()) {
       result |= AncestryFlags::Generic;
+      if (!CD->getClangNode())
+        result |= AncestryFlags::SwiftGeneric;
+    }
 
     // Note: it's OK to check for @objc explicitly instead of calling isObjC()
     // to infer it since we're going to visit every superclass.
@@ -4007,6 +4010,7 @@ void swift::simple_display(llvm::raw_ostream &out, AncestryFlags value) {
   printBit(opts.contains(AncestryFlags::ClangImported), "ClangImported");
   printBit(opts.contains(AncestryFlags::RequiresStoredPropertyInits),
            "RequiresStoredPropertyInits");
+  printBit(opts.contains(AncestryFlags::SwiftGeneric), "SwiftGeneric");
   out << " }";
 }
 
