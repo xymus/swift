@@ -2025,6 +2025,25 @@ public:
   }
 };
 
+/// List SPI names declared on a decl and its parent.
+class DeclSPIsRequest :
+    public SimpleRequest<DeclSPIsRequest,
+                         llvm::SmallVector<Identifier, 4>(const Decl *),
+                         CacheKind::Cached> {
+public:
+  using SimpleRequest::SimpleRequest;
+
+private:
+  friend SimpleRequest;
+
+  // Evaluation.
+  llvm::Expected<llvm::SmallVector<Identifier, 4>> evaluate(Evaluator &evaluator, const Decl *decl) const;
+
+public:
+  bool isCached() const { return true; }
+};
+
+
 /// Type-checks a `@differentiable` attribute and returns the resolved parameter
 /// indices on success. On failure, emits diagnostics and returns `nullptr`.
 ///

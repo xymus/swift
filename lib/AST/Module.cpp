@@ -1810,6 +1810,43 @@ bool SourceFile::isImportedAsSPI(const ValueDecl *targetDecl) const {
   return false;
 }
 
+//bool ValueDecl::declaredSPIs() const {
+//  return evaluateOrDefault(getASTContext().evaluator,
+//                           IsFinalRequest { const_cast<ValueDecl *>(this) },
+//                           getAttrs().hasAttribute<FinalAttr>());
+//}
+
+llvm::Expected<llvm::SmallVector<Identifier, 4>>
+DeclSPIsRequest::evaluate(Evaluator &evaluator, const Decl *decl) const {
+  SmallVector<Identifier, 4> declaredSPIs;
+  for (auto attr : decl->getAttrs().getAttributes<SPIAccessControlAttr>())
+    for (auto declSPI : attr->getSPINames())
+      //if (!declaredSPIs.contains(declSPI))
+        declaredSPIs.push_back(declSPI);
+
+  auto parent = decl->getDeclContext();
+  //if (auto parentVD = dyn_cast<ValueDecl>(parent)) {
+  //} else {
+  //  auto extension = cast<ExtensionDecl>(decl);
+  //}
+
+
+  if (auto parentD = parent->getAsDecl()) {//dyn_cast<Decl>(parent)) {
+
+
+  auto parentSPIs = evaluateOrDefault(decl->getASTContext().evaluator,
+                      DeclSPIsRequest{ const_cast<Decl *>(parentD) },
+                      SmallVector<Identifier, 0>());
+  //for (auto declSPI : parentSPIs)
+  //  //if (!declaredSPIs.contains(declSPI))
+  //    declaredSPIs.push_back(declSPI);
+  //}
+  //else if (parent:GG
+  }
+
+  return declaredSPIs;
+}
+
 bool SourceFile::shouldCrossImport() const {
   return Kind != SourceFileKind::SIL && Kind != SourceFileKind::Interface &&
          getASTContext().LangOpts.EnableCrossImportOverlays;
