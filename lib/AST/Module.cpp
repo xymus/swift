@@ -1794,20 +1794,65 @@ void SourceFile::lookupImportedSPIGroups(const ModuleDecl *importedModule,
 }
 
 bool SourceFile::isImportedAsSPI(const ValueDecl *targetDecl) const {
-  if (!targetDecl->getAttrs().hasAttribute<SPIAccessControlAttr>())
-    return false;
-
   auto targetModule = targetDecl->getModuleContext();
-  SmallVector<Identifier, 4> importedSpis;
-  lookupImportedSPIGroups(targetModule, importedSpis);
+  SmallVector<Identifier, 4> importedSPIGroups;
+  lookupImportedSPIGroups(targetModule, importedSPIGroups);
+  if (importedSPIGroups.empty()) return false;
 
-  for (auto attr : targetDecl->getAttrs().getAttributes<SPIAccessControlAttr>())
-    for (auto declSPI : attr->getSPIGroups())
-      for (auto importedSPI : importedSpis)
-        if (importedSPI == declSPI)
-          return true;
+  auto declSPIGroups = evaluateOrDefault(
+                        targetDecl->getASTContext().evaluator,
+                        SPIGroupsRequest{ targetDecl },
+                        ArrayRef<Identifier>());
+
+  // Note: We could optimize this further using a set.
+  for (auto importedSPI : importedSPIGroups)
+    for (auto declSPI : declSPIGroups)
+      if (importedSPI == declSPI)
+        return true;
 
   return false;
+}
+
+bool ValueDecl::isSPI() const {
+  auto spiGroups = evaluateOrDefault(
+                        getASTContext().evaluator,
+                        SPIGroupsRequest{ this },
+                        ArrayRef<Identifier>());
+  return !spiGroups.empty();
+}
+
+ArrayRef<Identifier> ValueDecl::getSPIGroups() const {
+  return evaluateOrDefault(getASTContext().evaluator,
+                           SPIGroupsRequest{ this },
+                           ArrayRef<Identifier>());
+}
+
+llvm::Expected<llvm::ArrayRef<Identifier>>
+SPIGroupsRequest::evaluate(Evaluator &evaluator, const Decl *decl) const {
+  llvm::SetVector<Identifier> spiGroups;
+  for (auto attr : decl->getAttrs().getAttributes<SPIAccessControlAttr>())
+    for (auto spi : attr->getSPIGroups())
+      spiGroups.insert(spi);
+
+  // Only if there is no SPI declared locally and this is at least public,
+  // search up until we find at least one in the parents.
+  auto &ctx = decl->getASTContext();
+  if (spiGroups.empty() &&
+      (!isa<ValueDecl>(decl) ||
+       cast<ValueDecl>(decl)->getFormalAccess() >= AccessLevel::Public)) {
+    auto parent = decl->getDeclContext();
+    if (auto parentD = parent->getAsDecl()) {
+      if (!isa<ModuleDecl>(parentD)) {
+        auto parentSPIs = evaluateOrDefault(ctx.evaluator,
+                                            SPIGroupsRequest{ parentD },
+                                            ArrayRef<Identifier>());
+        for (auto spi : parentSPIs)
+          spiGroups.insert(spi);
+      }
+    }
+  }
+
+  return ctx.AllocateCopy(spiGroups.getArrayRef());
 }
 
 bool SourceFile::shouldCrossImport() const {
