@@ -155,12 +155,12 @@ PrintOptions PrintOptions::printSwiftInterfaceFile(bool preferTypeRepr,
             if (contributesToParentTypeStorage(ASD))
               return true;
 
-          // Always print SPI decls if `PrintSPIs`.
-          if (options.PrintSPIs && VD->isSPI())
-            return true;
-
           return false;
         }
+
+        // Skip SPI decls if `PrintSPIs`.
+        if (!options.PrintSPIs && VD->isSPI())
+          return false;
       }
 
       // Skip extensions that extend things we wouldn't print.

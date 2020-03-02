@@ -3156,8 +3156,8 @@ static AccessLevel getMaximallyOpenAccessFor(const ValueDecl *decl) {
   return AccessLevel::Public;
 }
 
-/// Adjust \p access based on whether \p VD is \@usableFromInline, has been
-/// testably imported from \p useDC or \p VD is an imported SPI.
+/// Adjust \p access based on whether \p VD is \@usableFromInline or has been
+/// testably imported from \p useDC.
 ///
 /// \p access isn't always just `VD->getFormalAccess()` because this adjustment
 /// may be for a write, in which case the setter's access might be used instead.
@@ -3184,9 +3184,6 @@ static AccessLevel getAdjustedFormalAccess(const ValueDecl *VD,
     if (!useSF) return access;
     if (useSF->hasTestableOrPrivateImport(access, VD))
       return getMaximallyOpenAccessFor(VD);
-  } else if (!treatSPIAsPublic && VD->isSPI()) {
-    // Restrict access to SPI decls.
-    return AccessLevel::Internal;
   }
 
   return access;
@@ -3339,14 +3336,8 @@ getAccessScopeForFormalAccess(const ValueDecl *VD,
   case AccessLevel::Internal:
     return AccessScope(resultDC->getParentModule());
   case AccessLevel::Public:
-  case AccessLevel::Open: {
-    if (useDC) {
-      auto *useSF = dyn_cast<SourceFile>(useDC->getModuleScopeContext());
-      if (useSF && VD->isSPI() && !useSF->isImportedAsSPI(VD))
-        return AccessScope(VD->getModuleContext(), /*private*/false);
-    }
-    return AccessScope::getPublic();
-  }
+  case AccessLevel::Open:
+    return AccessScope::getPublic(VD->isSPI());
   }
 
   llvm_unreachable("unknown access level");
@@ -3375,8 +3366,14 @@ static bool checkAccessUsingAccessScopes(const DeclContext *useDC,
   AccessScope accessScope =
       getAccessScopeForFormalAccess(VD, access, useDC,
                                     /*treatUsableFromInlineAsPublic*/false);
-  return accessScope.getDeclContext() == useDC ||
-         AccessScope(useDC).isChildOf(accessScope);
+  if (accessScope.getDeclContext() == useDC) return true;
+  if (!AccessScope(useDC).isChildOf(accessScope)) return false;
+
+  // Check SPI access
+  if (!useDC || !VD->isSPI()) return true;
+  auto useSF = dyn_cast<SourceFile>(useDC->getModuleScopeContext());
+  return !useSF || useSF->isImportedAsSPI(VD) ||
+         VD->getDeclContext()->getParentModule() == useDC->getParentModule();
 }
 
 /// Checks if \p VD may be used from \p useDC, taking \@testable and \@_spi
@@ -3452,10 +3449,9 @@ static bool checkAccess(const DeclContext *useDC, const ValueDecl *VD,
   }
   case AccessLevel::Public:
   case AccessLevel::Open: {
-    if (useDC) {
+    if (useDC && VD->isSPI()) {
       auto *useSF = dyn_cast<SourceFile>(useDC->getModuleScopeContext());
-      if (useSF && VD->isSPI() && !useSF->isImportedAsSPI(VD))
-        return false;
+      return !useSF || useSF->isImportedAsSPI(VD);
     }
     return true;
   }
