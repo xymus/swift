@@ -3184,8 +3184,7 @@ static AccessLevel getAdjustedFormalAccess(const ValueDecl *VD,
     if (!useSF) return access;
     if (useSF->hasTestableOrPrivateImport(access, VD))
       return getMaximallyOpenAccessFor(VD);
-  } else if (!treatSPIAsPublic &&
-             VD->getAttrs().hasAttribute<SPIAccessControlAttr>()) {
+  } else if (!treatSPIAsPublic && VD->isSPI()) {
     // Restrict access to SPI decls.
     return AccessLevel::Internal;
   }
@@ -3343,9 +3342,7 @@ getAccessScopeForFormalAccess(const ValueDecl *VD,
   case AccessLevel::Open: {
     if (useDC) {
       auto *useSF = dyn_cast<SourceFile>(useDC->getModuleScopeContext());
-      if (useSF &&
-          VD->getAttrs().hasAttribute<SPIAccessControlAttr>() &&
-          !useSF->isImportedAsSPI(VD))
+      if (useSF && VD->isSPI() && !useSF->isImportedAsSPI(VD))
         return AccessScope(VD->getModuleContext(), /*private*/false);
     }
     return AccessScope::getPublic();
@@ -3457,9 +3454,7 @@ static bool checkAccess(const DeclContext *useDC, const ValueDecl *VD,
   case AccessLevel::Open: {
     if (useDC) {
       auto *useSF = dyn_cast<SourceFile>(useDC->getModuleScopeContext());
-      if (useSF &&
-          VD->getAttrs().hasAttribute<SPIAccessControlAttr>() &&
-          !useSF->isImportedAsSPI(VD))
+      if (useSF && VD->isSPI() && !useSF->isImportedAsSPI(VD))
         return false;
     }
     return true;

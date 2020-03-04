@@ -1813,15 +1813,14 @@ bool SourceFile::isImportedAsSPI(const ValueDecl *targetDecl) const {
   return false;
 }
 
-bool ValueDecl::isSPI() const {
-  auto spiGroups = evaluateOrDefault(
-                        getASTContext().evaluator,
-                        SPIGroupsRequest{ this },
-                        ArrayRef<Identifier>());
+bool Decl::isSPI() const {
+  auto spiGroups = evaluateOrDefault(getASTContext().evaluator,
+                                     SPIGroupsRequest{ this },
+                                     ArrayRef<Identifier>());
   return !spiGroups.empty();
 }
 
-ArrayRef<Identifier> ValueDecl::getSPIGroups() const {
+ArrayRef<Identifier> Decl::getSPIGroups() const {
   return evaluateOrDefault(getASTContext().evaluator,
                            SPIGroupsRequest{ this },
                            ArrayRef<Identifier>());
