@@ -34,9 +34,12 @@ public func foo() {}
 // CHECK-PUBLIC-NOT: localSPIFunc()
 
 // SPI declarations
-@_spi(MySPI) public class SPIClassLocal {}
+@_spi(MySPI) public class SPIClassLocal {
 // CHECK-PRIVATE: @_spi(MySPI) public class SPIClassLocal
 // CHECK-PUBLIC-NOT: class SPIClassLocal
+
+  public init() {}
+}
 
 @_spi(MySPI) public extension SPIClassLocal {
 // CHECK-PRIVATE: @_spi(MySPI) extension SPIClassLocal
@@ -46,9 +49,19 @@ public func foo() {}
   // CHECK-PRIVATE: @_spi(MySPI) public func extensionMethod
   // CHECK-PUBLIC-NOT: func extensionMethod
 
-  func internalExtensionMethod() {}
+  internal func internalExtensionMethod() {}
   // CHECK-PRIVATE-NOT: internalExtensionMethod
   // CHECK-PUBLIC-NOT: internalExtensionMethod
+
+  func inheritedSPIExtensionMethod() {}
+  // CHECK-PRIVATE: inheritedSPIExtensionMethod
+  // CHECK-PUBLIC-NOT: inheritedSPIExtensionMethod
+}
+
+public extension SPIClassLocal {
+  internal func internalExtensionMethode1() {}
+  // CHECK-PRIVATE-NOT: internalExtensionMethod1
+  // CHECK-PUBLIC-NOT: internalExtensionMethod1
 }
 
 class InternalClassLocal {}
