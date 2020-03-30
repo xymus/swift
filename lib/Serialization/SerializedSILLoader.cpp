@@ -28,13 +28,15 @@ SerializedSILLoader::SerializedSILLoader(
   // Get a list of SerializedModules from ASTContext.
   // FIXME: Iterating over LoadedModules is not a good way to do this.
   for (auto &Entry : Ctx.LoadedModules) {
-    for (auto File : Entry.second->getFiles()) {
-      if (auto LoadedAST = dyn_cast<SerializedASTFile>(File)) {
-        auto Des = new SILDeserializer(&LoadedAST->File, *SILMod, callbacks);
+    if (Entry.second) {
+      for (auto File : Entry.second->getFiles()) {
+        if (auto LoadedAST = dyn_cast<SerializedASTFile>(File)) {
+          auto Des = new SILDeserializer(&LoadedAST->File, *SILMod, callbacks);
 #ifndef NDEBUG
-        SILMod->verify();
+          SILMod->verify();
 #endif
-        LoadedSILSections.emplace_back(Des);
+          LoadedSILSections.emplace_back(Des);
+        |
       }
     }
   }
