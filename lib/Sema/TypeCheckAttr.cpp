@@ -863,12 +863,41 @@ void AttributeChecker::visitSetterAccessAttr(
 
 void AttributeChecker::visitSPIAccessControlAttr(SPIAccessControlAttr *attr) {
   if (auto VD = dyn_cast<ValueDecl>(D)) {
+    // VD must be public or open to use an @_spi attribute.
     auto declAccess = VD->getFormalAccess();
     if (declAccess < AccessLevel::Public) {
       diagnoseAndRemoveAttr(attr,
                             diag::spi_attribute_on_non_public,
                             declAccess,
                             D->getDescriptiveKind());
+      return;
+    }
+
+    // If VD is a public protocol requirement it can be SPI only if there's
+    // a default implementation.
+    if (auto protocol = dyn_cast<ProtocolDecl>(D->getDeclContext())) {
+      auto implementations = TypeChecker::lookupMember(
+                                             D->getDeclContext(),
+                                             protocol->getDeclaredType(),
+                                             VD->createNameRef(),
+                                             NameLookupFlags::ProtocolMembers);
+      bool hasDefaultImplementation = llvm::any_of(implementations,
+        [&](const LookupResultEntry &entry) {
+          auto DC = entry.getValueDecl()->getDeclContext();
+          auto extension = dyn_cast<ExtensionDecl>(DC);
+          if (!extension) return false;
+
+          // The implementation must be defined in the same module in
+          // an unconstrained extension.
+          auto decl = extension->getExtendedNominal();
+          return extension->getParentModule() == decl->getParentModule() &&
+                 !extension->isConstrainedExtension();
+        });
+
+      if (!hasDefaultImplementation)
+        diagnoseAndRemoveAttr(attr,
+                              diag::spi_attribute_on_protocol_requirement,
+                              VD->getName());
     }
   }
 }
