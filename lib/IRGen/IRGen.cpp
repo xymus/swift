@@ -1068,7 +1068,7 @@ GeneratedModule IRGenRequest::evaluate(Evaluator &evaluator,
 
     std::for_each(Opts.LinkLibraries.begin(), Opts.LinkLibraries.end(),
                   [&](LinkLibrary linkLib) {
-      IGM.addLinkLibrary(linkLib);
+      IGM.addLinkLibrary(linkLib, /*fromCommandLine=*/true);
     });
 
     if (!IGM.finalize())
@@ -1311,7 +1311,7 @@ static void performParallelIRGeneration(IRGenDescriptor desc) {
   
   std::for_each(Opts.LinkLibraries.begin(), Opts.LinkLibraries.end(),
                 [&](LinkLibrary linkLib) {
-                  PrimaryGM->addLinkLibrary(linkLib);
+                  PrimaryGM->addLinkLibrary(linkLib, /*fromCommandLine=*/true);
                 });
   
   llvm::DenseSet<StringRef> referencedGlobals;

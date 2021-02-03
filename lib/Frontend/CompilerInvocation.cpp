@@ -1500,6 +1500,8 @@ static bool ParseIRGenArgs(IRGenOptions &Opts, ArgList &Args,
     Opts.VerifyTypeLayoutNames.push_back(A->getValue());
   }
 
+  Opts.DisableAutolinkAllFrameworks |=
+    Args.hasArg(OPT_disable_autolink_all_frameworks);
   for (const Arg *A : Args.filtered(OPT_disable_autolink_framework)) {
     Opts.DisableAutolinkFrameworks.push_back(A->getValue());
   }

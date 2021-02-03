@@ -1190,7 +1190,8 @@ llvm::SmallString<32> getTargetDependentLibraryOption(const llvm::Triple &T,
   return buffer;
 }
 
-void IRGenModule::addLinkLibrary(const LinkLibrary &linkLib) {
+void IRGenModule::addLinkLibrary(const LinkLibrary &linkLib,
+                                 bool fromCommandLine) {
   // The debugger gets the autolink information directly from
   // the LinkLibraries of the module, so there's no reason to
   // emit it into the IR of debugger expressions.
@@ -1204,6 +1205,8 @@ void IRGenModule::addLinkLibrary(const LinkLibrary &linkLib) {
   }
   case LibraryKind::Framework: {
     // If we're supposed to disable autolinking of this framework, bail out.
+    if (!fromCommandLine && IRGen.Opts.DisableAutolinkAllFrameworks)
+      return;
     auto &frameworks = IRGen.Opts.DisableAutolinkFrameworks;
     if (std::find(frameworks.begin(), frameworks.end(), linkLib.getName())
           != frameworks.end())

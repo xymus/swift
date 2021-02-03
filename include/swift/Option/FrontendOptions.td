@@ -302,6 +302,9 @@ def code_complete_inits_in_postfix_expr : Flag<["-"], "code-complete-inits-in-po
 def code_complete_call_pattern_heuristics : Flag<["-"], "code-complete-call-pattern-heuristics">,
   HelpText<"Use heuristics to guess whether we want call pattern completions">;
 
+def disable_autolink_all_frameworks : Flag<["-"],"disable-autolink-all-frameworks">,
+  HelpText<"Disable autolinking against all frameworks">;
+
 def disable_autolink_framework : Separate<["-"],"disable-autolink-framework">,
   HelpText<"Disable autolinking against the provided framework">;
 

@@ -1347,7 +1347,7 @@ public:
 
   void emitSourceFile(SourceFile &SF);
   void emitSynthesizedFileUnit(SynthesizedFileUnit &SFU);
-  void addLinkLibrary(const LinkLibrary &linkLib);
+  void addLinkLibrary(const LinkLibrary &linkLib, bool fromCommandLine = false);
 
   /// Attempt to finalize the module.
   ///
