@@ -929,6 +929,7 @@ ModuleDecl *CompilerInstance::getMainModule() const {
 
     if (Invocation.getFrontendOptions().EnableLibraryEvolution)
       MainModule->setResilienceStrategy(ResilienceStrategy::Resilient);
+    MainModule->setIsPrivateFramework(!MainModule->isResilient());
 
     // Register the main module with the AST context.
     Context->addLoadedModule(MainModule);

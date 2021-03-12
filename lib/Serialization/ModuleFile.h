@@ -471,6 +471,10 @@ public:
     return Core->Bits.IsAllowModuleWithCompilerErrorsEnabled;
   }
 
+  bool isPrivateFramework() const {
+    return Core->Bits.IsPrivateFramework;
+  }
+
   /// \c true if this module has incremental dependency information.
   bool hasIncrementalInfo() const { return Core->hasIncrementalInfo(); }
 

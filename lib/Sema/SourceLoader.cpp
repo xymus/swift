@@ -118,6 +118,7 @@ ModuleDecl *SourceLoader::loadModule(SourceLoc importLoc,
   auto *importMod = ModuleDecl::create(moduleID.Item, Ctx, importInfo);
   if (EnableLibraryEvolution)
     importMod->setResilienceStrategy(ResilienceStrategy::Resilient);
+  importMod->setIsPrivateFramework(!EnableLibraryEvolution);
   Ctx.addLoadedModule(importMod);
 
   auto *importFile =

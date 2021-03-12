@@ -450,6 +450,13 @@ public:
     Bits.ModuleDecl.RawResilienceStrategy = unsigned(strategy);
   }
 
+  bool isPrivateFramework() const {
+    return Bits.ModuleDecl.IsPrivateFramework;
+  }
+  void setIsPrivateFramework(bool flag = true) {
+    Bits.ModuleDecl.IsPrivateFramework = flag;
+  }
+
   /// Returns true if this module was or is being compiled for testing.
   bool hasIncrementalInfo() const { return Bits.ModuleDecl.HasIncrementalInfo; }
   void setHasIncrementalInfo(bool enabled = true) {

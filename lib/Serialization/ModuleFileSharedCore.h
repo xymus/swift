@@ -332,8 +332,10 @@ private:
     /// Whether this module is compiled while allowing errors.
     unsigned IsAllowModuleWithCompilerErrorsEnabled: 1;
 
+    unsigned IsPrivateFramework: 1;
+
     // Explicitly pad out to the next word boundary.
-    unsigned : 3;
+    unsigned : 2;
   } Bits = {};
   static_assert(sizeof(ModuleBits) <= 8, "The bit set should be small");
 

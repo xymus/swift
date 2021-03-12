@@ -1176,6 +1176,7 @@ ModuleFileSharedCore::ModuleFileSharedCore(
       Bits.IsImplicitDynamicEnabled = extInfo.isImplicitDynamicEnabled();
       Bits.IsAllowModuleWithCompilerErrorsEnabled =
           extInfo.isAllowModuleWithCompilerErrorsEnabled();
+      Bits.IsPrivateFramework = Bits.ResilienceStrategy != (unsigned)ResilienceStrategy::Resilient; // TODO
       MiscVersion = info.miscVersion;
 
       hasValidControlBlock = true;

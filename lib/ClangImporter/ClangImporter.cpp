@@ -2120,6 +2120,18 @@ ClangModuleUnit *ClangImporter::Implementation::getWrapperForModule(
   wrapper->setIsNonSwiftModule();
   wrapper->setHasResolvedImports();
 
+  // It's a private module if the module map is private or
+  // if it's a framework from the "PrivateFrameworks" directory. TODO
+  // IsFramework? isPartOfFramework()
+  // IsSystem?
+  // no getUmbrellaDir?
+  // no DefinitionLoc
+  bool fromPrivateFramework = underlying->isPartOfFramework() &&
+                              !underlying->PresumedModuleMapFile.empty() &&
+                  underlying->PresumedModuleMapFile.find("PrivateFrameworks") != std::string::npos;
+  wrapper->setIsPrivateFramework(fromPrivateFramework ||
+                                 underlying->ModuleMapIsPrivate);
+
   auto file = new (SwiftContext) ClangModuleUnit(*wrapper, *this,
                                                  underlying);
   wrapper->addFile(*file);

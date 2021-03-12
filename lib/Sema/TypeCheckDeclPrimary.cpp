@@ -1605,6 +1605,24 @@ public:
     // Force the lookup of decls referenced by a scoped import in case it emits
     // diagnostics.
     (void)ID->getDecls();
+
+    // Report the public import of a private module.
+    auto target = ID->getModule();
+    auto importer = ID->getModuleContext();
+    if (target &&
+        !ID->getAttrs().hasAttribute<ImplementationOnlyAttr>() &&
+        !importer->isPrivateFramework() &&
+        target->isPrivateFramework()) {
+
+      auto &diags = ID->getASTContext().Diags;
+      InFlightDiagnostic warning =
+          diags.diagnose(ID, diag::warn_public_import_of_private_module,
+                         target->getName(), importer->getName());
+      if (ID->getAttrs().isEmpty()) {
+        warning.fixItInsert(ID->getStartLoc(),
+                            "@_implementationOnly ");
+      }
+    }
   }
 
   void visitOperatorDecl(OperatorDecl *OD) {
