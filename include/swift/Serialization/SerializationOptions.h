@@ -34,6 +34,7 @@ namespace swift {
     std::string SymbolGraphOutputDir;
     bool SkipSymbolGraphInheritedDocs = true;
     llvm::VersionTuple UserModuleVersion;
+    std::string BuilderSDK;
 
     StringRef GroupInfoPath;
     StringRef ImportedHeader;
