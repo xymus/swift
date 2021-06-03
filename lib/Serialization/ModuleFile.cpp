@@ -152,7 +152,8 @@ Status ModuleFile::associateWithFileContext(FileUnit *file, SourceLoc diagLoc,
 
   auto clientSDK = swift::getSDKName(ctx.SearchPathOpts.SDKPath);
   StringRef moduleSDK = Core->BuilderSDK;
-  if (!moduleSDK.empty() && !clientSDK.empty() &&
+  if (ctx.SearchPathOpts.EnableSDKBuilderChecking &&
+      !moduleSDK.empty() && !clientSDK.empty() &&
       moduleSDK != clientSDK) {
     status = Status::SDKMismatch;
     return error(status);
