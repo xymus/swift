@@ -70,9 +70,11 @@ static Optional<StringRef> getRelativeDepPath(StringRef DepPath,
 
 struct ErrorDowngradeConsumerRAII: DiagnosticConsumer {
   DiagnosticEngine &Diag;
+  bool Silence;
   std::vector<DiagnosticConsumer *> allConsumers;
   bool SeenError;
-  ErrorDowngradeConsumerRAII(DiagnosticEngine &Diag): Diag(Diag),
+  ErrorDowngradeConsumerRAII(DiagnosticEngine &Diag, bool Silence):
+    Diag(Diag), Silence(Silence),
       allConsumers(Diag.takeConsumers()), SeenError(false) {
     Diag.addConsumer(*this);
   }
@@ -81,12 +83,16 @@ struct ErrorDowngradeConsumerRAII: DiagnosticConsumer {
       Diag.addConsumer(*consumer);
     }
     Diag.removeConsumer(*this);
+    if (Silence)
+      Diag.resetHadAnyError();
   }
   void handleDiagnostic(SourceManager &SM, const DiagnosticInfo &Info) override {
     DiagnosticInfo localInfo(Info);
     if (localInfo.Kind == DiagnosticKind::Error) {
-      localInfo.Kind = DiagnosticKind::Warning;
       SeenError = true;
+      if (Silence)
+          return;
+      localInfo.Kind = DiagnosticKind::Warning;
       for (auto *consumer: allConsumers) {
         consumer->handleDiagnostic(SM, localInfo);
       }
@@ -207,7 +213,7 @@ std::error_code ExplicitModuleInterfaceBuilder::buildSwiftModuleFromInterface(
 
   LLVM_DEBUG(llvm::dbgs() << "Performing sema\n");
   if (isTypeChecking && FEOpts.DowngradeInterfaceVerificationError) {
-    ErrorDowngradeConsumerRAII R(Instance.getDiags());
+    ErrorDowngradeConsumerRAII R(Instance.getDiags(), /*Silence=*/false);
     Instance.performSema();
     return std::error_code();
   }
@@ -322,13 +328,23 @@ bool ImplicitModuleInterfaceBuilder::buildSwiftModuleInternal(
     SubError = (bool)subASTDelegate.runInSubCompilerInstance(
         moduleName, interfacePath, OutPath, diagnosticLoc,
         [&](SubCompilerInstanceInfo &info) {
-          auto EBuilder = ExplicitModuleInterfaceBuilder(
-              *info.Instance, diags, sourceMgr, moduleCachePath, backupInterfaceDir,
-              prebuiltCachePath, ABIDescriptorPath, extraDependencies, diagnosticLoc,
-              dependencyTracker);
-          return EBuilder.buildSwiftModuleFromInterface(
-              interfacePath, OutPath, ShouldSerializeDeps, ModuleBuffer,
-              CompiledCandidates, info.CompilerVersion);
+
+          auto build = [&] {
+            auto EBuilder = ExplicitModuleInterfaceBuilder(
+                *info.Instance, diags, sourceMgr, moduleCachePath, backupInterfaceDir,
+                prebuiltCachePath, ABIDescriptorPath, extraDependencies, diagnosticLoc,
+                dependencyTracker);
+            return EBuilder.buildSwiftModuleFromInterface(
+                interfacePath, OutPath, ShouldSerializeDeps, ModuleBuffer,
+                CompiledCandidates, info.CompilerVersion);
+          };
+
+          if (silenceInterfaceDiagnostics) {
+            ErrorDowngradeConsumerRAII R(*diags, /*Silence=*/true);
+            return build();
+          } else {
+            return build();
+          }
         });
   }, ThreadStackSize);
   return !RunSuccess || SubError;

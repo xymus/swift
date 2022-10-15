@@ -675,7 +675,7 @@ class ModuleInterfaceLoaderImpl {
   std::pair<std::string, std::string> getCompiledModuleCandidates() {
     std::pair<std::string, std::string> result;
     // Should we attempt to load a swiftmodule adjacent to the swiftinterface?
-    bool shouldLoadAdjacentModule = true;
+    bool shouldLoadAdjacentModule = ctx.IgnoreAdjacentModules;
 
     // Don't use the adjacent swiftmodule for frameworks from the public
     // Frameworks folder of the SDK.
@@ -1029,8 +1029,8 @@ class ModuleInterfaceLoaderImpl {
         ctx.SourceMgr, diagsToUse,
         astDelegate, interfacePath, moduleName, cacheDir,
         prebuiltCacheDir, backupInterfaceDir, StringRef(),
-        Opts.disableInterfaceLock, diagnosticLoc,
-        dependencyTracker);
+        Opts.disableInterfaceLock, ctx.IgnoreAdjacentModules,
+        diagnosticLoc, dependencyTracker);
       // If we found an out-of-date .swiftmodule, we still want to add it as
       // a dependency of the .swiftinterface. That way if it's updated, but
       // the .swiftinterface remains the same, we invalidate the cache and
@@ -1061,8 +1061,8 @@ class ModuleInterfaceLoaderImpl {
       ImplicitModuleInterfaceBuilder fallbackBuilder(
         ctx.SourceMgr, &ctx.Diags, astDelegate, backupPath, moduleName, cacheDir,
         prebuiltCacheDir, backupInterfaceDir, StringRef(),
-        Opts.disableInterfaceLock, diagnosticLoc,
-        dependencyTracker);
+        Opts.disableInterfaceLock, ctx.IgnoreAdjacentModules,
+        diagnosticLoc, dependencyTracker);
       if (rebuildInfo.sawOutOfDateModule(modulePath))
         fallbackBuilder.addExtraDependency(modulePath);
       // Add the canonical interface path as a dependency of this module.
@@ -1245,7 +1245,8 @@ bool ModuleInterfaceLoader::buildSwiftModuleFromSwiftInterface(
     StringRef OutPath, StringRef ABIOutputPath,
     bool SerializeDependencyHashes,
     bool TrackSystemDependencies, ModuleInterfaceLoaderOptions LoaderOpts,
-    RequireOSSAModules_t RequireOSSAModules) {
+    RequireOSSAModules_t RequireOSSAModules,
+    bool silenceInterfaceDiagnostics) {
   InterfaceSubContextDelegateImpl astDelegate(
       SourceMgr, &Diags, SearchPathOpts, LangOpts, ClangOpts, LoaderOpts,
       /*CreateCacheDirIfAbsent*/ true, CacheDir, PrebuiltCacheDir,
@@ -1254,7 +1255,8 @@ bool ModuleInterfaceLoader::buildSwiftModuleFromSwiftInterface(
   ImplicitModuleInterfaceBuilder builder(SourceMgr, &Diags, astDelegate, InPath,
                                          ModuleName, CacheDir, PrebuiltCacheDir,
                                          BackupInterfaceDir, ABIOutputPath,
-                                         LoaderOpts.disableInterfaceLock);
+                                         LoaderOpts.disableInterfaceLock,
+                                         silenceInterfaceDiagnostics);
   // FIXME: We really only want to serialize 'important' dependencies here, if
   //        we want to ship the built swiftmodules to another machine.
   auto failed = builder.buildSwiftModule(OutPath, /*shouldSerializeDeps*/true,
@@ -1272,7 +1274,8 @@ bool ModuleInterfaceLoader::buildSwiftModuleFromSwiftInterface(
   ImplicitModuleInterfaceBuilder backupBuilder(SourceMgr, &Diags, astDelegate, backInPath,
                                                ModuleName, CacheDir, PrebuiltCacheDir,
                                                BackupInterfaceDir, ABIOutputPath,
-                                               LoaderOpts.disableInterfaceLock);
+                                               LoaderOpts.disableInterfaceLock,
+                                               silenceInterfaceDiagnostics);
   // Ensure we can rebuild module after user changed the original interface file.
   backupBuilder.addExtraDependency(InPath);
   // FIXME: We really only want to serialize 'important' dependencies here, if

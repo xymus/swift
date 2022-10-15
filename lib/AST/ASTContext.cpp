@@ -2190,6 +2190,14 @@ void ASTContext::addLoadedModule(ModuleDecl *M) {
   getImpl().LoadedModules[M->getRealName()] = M;
 }
 
+void ASTContext::setIgnoreAdjacentModules(bool value) {
+  // Clear the cache if we expect a different view on the same modules.
+  if (IgnoreAdjacentModules != value)
+    getImpl().LoadedModules.clear();
+
+  IgnoreAdjacentModules = value;
+}
+
 rewriting::RewriteContext &
 ASTContext::getRewriteContext() {
   auto &rewriteCtx = getImpl().TheRewriteContext;

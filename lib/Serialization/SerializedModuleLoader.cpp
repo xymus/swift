@@ -447,6 +447,9 @@ std::error_code ImplicitSerializedModuleLoader::findModuleFilesInDirectory(
   if (LoadMode == ModuleLoadingMode::OnlyInterface)
     return std::make_error_code(std::errc::not_supported);
 
+  if (Ctx.IgnoreAdjacentModules)
+    return std::make_error_code(std::errc::not_supported);
+
   auto ModuleErr = openModuleFile(ModuleID, BaseName, ModuleBuffer);
   if (ModuleErr)
     return ModuleErr;
