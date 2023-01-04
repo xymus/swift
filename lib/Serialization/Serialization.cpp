@@ -3360,15 +3360,27 @@ class Serializer::DeclSerializer : public DeclVisitor<DeclSerializer> {
   ///
   /// This should be kept conservative. Compiler crashes are still better than
   /// miscompiles.
-  static bool overriddenDeclAffectsABI(const ValueDecl *overridden) {
+  static bool overriddenDeclAffectsABI(const ValueDecl *override,
+                                       const ValueDecl *overridden) {
     if (!overridden)
       return false;
-    // There's one case where we know a declaration doesn't affect the ABI of
+    // There's a few cases where we know a declaration doesn't affect the ABI of
     // its overrides after they've been compiled: if the declaration is '@objc'
     // and 'dynamic'. In that case, all accesses to the method or property will
     // go through the Objective-C method tables anyway.
     if (overridden->hasClangNode() || overridden->shouldUseObjCDispatch())
       return false;
+
+    // For public-override-internal case, having `override` doesn't have ABI
+    // implication.
+    auto isPublic = [](const ValueDecl *VD) {
+      return VD->getFormalAccessScope(VD->getDeclContext(),
+                                      /*treatUsableFromInlineAsPublic*/true)
+               .isPublic();
+    };
+    if (isPublic(override) && !isPublic(overridden))
+      return false;
+
     return true;
   }
 
@@ -4062,7 +4074,7 @@ public:
                            fn->isImplicitlyUnwrappedOptional(),
                            S.addDeclRef(fn->getOperatorDecl()),
                            S.addDeclRef(fn->getOverriddenDecl()),
-                           overriddenDeclAffectsABI(fn->getOverriddenDecl()),
+                           overriddenDeclAffectsABI(fn, fn->getOverriddenDecl()),
                            fn->getName().getArgumentNames().size() +
                              fn->getName().isCompoundName(),
                            rawAccessLevel,
@@ -4154,7 +4166,7 @@ public:
       uint8_t(getStableAccessorKind(fn->getAccessorKind()));
 
     bool overriddenAffectsABI =
-        overriddenDeclAffectsABI(fn->getOverriddenDecl());
+        overriddenDeclAffectsABI(fn, fn->getOverriddenDecl());
 
     Type ty = fn->getInterfaceType();
     SmallVector<IdentifierID, 4> dependencies;
