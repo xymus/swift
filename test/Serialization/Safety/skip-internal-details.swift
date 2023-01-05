@@ -13,13 +13,20 @@
 // RUN:   -emit-module-interface-path %t/Lib.swiftinterface
 
 // RUN: %target-swift-frontend -typecheck %t/Client.swift -I %t \
-// RUN:   -verify -Xllvm -debug-only=Serialization 2>&1 \
+// RUN:   -verify -Xllvm -debug-only=Serialization \
+// RUN:   -disable-deserialization-safety 2>&1 \
 // RUN:   | %FileCheck --check-prefixes=NEEDED,UNSAFE %s
+
+// RUN: %target-swift-frontend -typecheck %t/Client.swift -I %t \
+// RUN:   -verify -Xllvm -debug-only=Serialization \
+// RUN:   -enable-deserialization-safety 2>&1 \
+// RUN:   | %FileCheck --check-prefixes=NEEDED,CLEAN,SAFE %s
 
 // RUN: rm %t/Lib.swiftmodule
 
 // RUN: %target-swift-frontend -typecheck %t/Client.swift -I %t \
-// RUN:   -verify -Xllvm -debug-only=Serialization 2>&1 \
+// RUN:   -verify -Xllvm -debug-only=Serialization \
+// RUN:   -disable-deserialization-safety 2>&1 \
 // RUN:   | %FileCheck --check-prefixes=NEEDED,CLEAN %s
 
 /// Decls part of the API needed by the client.
@@ -36,6 +43,12 @@
 // CLEAN-NOT: Deserialized: 'internalFunc()'
 // CLEAN-NOT: Deserialized: 'privateFunc()'
 // CLEAN-NOT: Deserialized: 'fileprivateFunc()'
+
+/// Decls skips by the deserialization safety logic.
+// SAFE: Skipping unsafe deserialization: 'internalFunc()'
+// SAFE: Skipping unsafe deserialization: 'privateFunc()'
+// SAFE: Skipping unsafe deserialization: 'fileprivateFunc()'
+// SAFE: Skipping unsafe deserialization: 'refToIOI()'
 
 //--- HiddenLib.swift
 
