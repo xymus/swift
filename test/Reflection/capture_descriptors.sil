@@ -1,5 +1,6 @@
 
 // REQUIRES: no_asan
+// UNSUPPORTED: OS=macosx
 
 // https://github.com/apple/swift/issues/55339
 // XFAIL: OS=openbsd

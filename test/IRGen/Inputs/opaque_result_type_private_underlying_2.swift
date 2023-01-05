@@ -50,6 +50,7 @@ public struct PublicUnderlyingInlinable : A {
 public protocol P {}
 
 private struct PrivateSome : P {}
+public struct PublicSome : P {}
 public func getSome() -> some P {
   return PrivateSome()
 }
