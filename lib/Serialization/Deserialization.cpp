@@ -158,6 +158,8 @@ void InvalidRecordKindError::anchor() {}
 const char UnsafeDeserializationError::ID = '\0';
 void UnsafeDeserializationError::anchor() {}
 
+static llvm::Error consumeErrorIfXRefNonLoadedModule(llvm::Error &&error);
+
 /// Skips a single record in the bitstream.
 ///
 /// Destroys the stream position if the next entry is not a record.
@@ -3832,26 +3834,31 @@ public:
       opaqueDecl->setGenericSignature(GenericSignature());
     if (underlyingTypeSubsID) {
       auto subMapOrError = MF.getSubstitutionMapChecked(underlyingTypeSubsID);
-      if (!subMapOrError)
-        return subMapOrError.takeError();
-
-      // Check whether there are any conditionally available substitutions.
-      // If there are, it means that "unique" we just read is a universally
-      // available substitution.
-      SmallVector<OpaqueTypeDecl::ConditionallyAvailableSubstitutions *>
-          limitedAvailability;
-
-      deserializeConditionalSubstitutions(limitedAvailability);
-
-      if (limitedAvailability.empty()) {
-        opaqueDecl->setUniqueUnderlyingTypeSubstitutions(subMapOrError.get());
+      if (!subMapOrError) {
+        // If the underlying type references internal details, ignore it.
+        auto unconsumedError =
+          consumeErrorIfXRefNonLoadedModule(subMapOrError.takeError());
+        if (unconsumedError)
+          return unconsumedError;
       } else {
-        limitedAvailability.push_back(
-            OpaqueTypeDecl::ConditionallyAvailableSubstitutions::get(
-                ctx, {{VersionRange::empty(), /*unavailability=*/false}},
-                subMapOrError.get()));
+        // Check whether there are any conditionally available substitutions.
+        // If there are, it means that "unique" we just read is a universally
+        // available substitution.
+        SmallVector<OpaqueTypeDecl::ConditionallyAvailableSubstitutions *>
+            limitedAvailability;
 
-        opaqueDecl->setConditionallyAvailableSubstitutions(limitedAvailability);
+        deserializeConditionalSubstitutions(limitedAvailability);
+
+        if (limitedAvailability.empty()) {
+          opaqueDecl->setUniqueUnderlyingTypeSubstitutions(subMapOrError.get());
+        } else {
+          limitedAvailability.push_back(
+              OpaqueTypeDecl::ConditionallyAvailableSubstitutions::get(
+                  ctx, {{VersionRange::empty(), /*unavailability=*/false}},
+                  subMapOrError.get()));
+
+          opaqueDecl->setConditionallyAvailableSubstitutions(limitedAvailability);
+        }
       }
     }
     return opaqueDecl;
