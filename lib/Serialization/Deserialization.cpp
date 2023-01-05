@@ -3260,7 +3260,10 @@ public:
       }
     }
 
-    auto DC = MF.getDeclContext(contextID);
+    auto DC = MF.getDeclContextChecked(contextID);
+    if (!DC)
+      return DC.takeError();
+
     if (declOrOffset.isComplete())
       return declOrOffset;
 
@@ -3270,7 +3273,7 @@ public:
       return MF.diagnoseFatal();
 
     auto var = MF.createDecl<VarDecl>(/*IsStatic*/ isStatic, *introducer,
-                                      SourceLoc(), name, DC);
+                                      SourceLoc(), name, DC.get());
     var->setIsGetterMutating(isGetterMutating);
     var->setIsSetterMutating(isSetterMutating);
     declOrOffset = var;
