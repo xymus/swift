@@ -3015,6 +3015,71 @@ class Serializer::DeclSerializer : public DeclVisitor<DeclSerializer> {
     }
   }
 
+  void writeDeserializationSafety(const ValueDecl *decl) {
+    using namespace decls_block;
+
+    if (!decl->getDeclContext()->getParentModule()->isResilient())
+      return;
+
+    // Don't emit any safety record when building a swiftinterface in
+    // release builds. Debug builds do to assert later on inconsistencies.
+    auto parentSF = decl->getDeclContext()->getParentSourceFile();
+    bool fromModuleInterface = parentSF &&
+                               parentSF->Kind == SourceFileKind::Interface;
+#if NDEBUG
+    if (fromModuleInterface)
+      return;
+#endif
+
+    if (isa<GenericTypeParamDecl>(decl) ||
+        isa<ParamDecl>(decl) ||
+        isa<EnumCaseDecl>(decl) || // Enum elements
+        isa<EnumElementDecl>(decl) ||
+        isa<AccessorDecl>(decl)) // for private(set)
+      return;
+
+    // Frozen fields, lazy vars, property wrappers backing.
+    if (auto var = dyn_cast<VarDecl>(decl))
+      if (var->isLayoutExposedToClients() ||
+          var->isLazyStorageProperty() ||
+          var->getOriginalWrappedProperty())
+        return;
+
+    // Testable and private import.
+    if (decl->getEffectiveAccess() >= swift::AccessLevel::Public)
+      return;
+
+    llvm::SmallSet<StringRef, 4> ss;
+    PrintOptions opts = PrintOptions::printSwiftInterfaceFile(
+        decl->getDeclContext()->getParentModule(),
+                                              /*preferTypeRepr*/false,
+                                              /*printFullConvention*/false,
+                                              /*printSPIs*/true,
+                                              /*useExportedModuleNames*/false,
+                                              /*aliasModuleNames*/false,
+                                              &ss);
+
+    if (opts.shouldPrint(decl))
+      return;
+
+    // Write a human readable name to an identifier.
+    SmallString<64> out;
+    llvm::raw_svector_ostream outStream(out);
+    outStream << decl->getName();
+    auto name = S.getASTContext().getIdentifier(out);
+
+#ifndef NDEBUG
+    if (fromModuleInterface) {
+       llvm::dbgs() << "A swiftinterface decl was marked as unsafe: '"
+                    << name << "'\n";
+    }
+#endif
+
+    auto abbrCode = S.DeclTypeAbbrCodes[DeserializationSafetyLayout::Code];
+    DeserializationSafetyLayout::emitRecord(S.Out, S.ScratchRecord, abbrCode,
+                                            S.addDeclBaseNameRef(name));
+  }
+
   void writeForeignErrorConvention(const ForeignErrorConvention &fec) {
     using namespace decls_block;
 
@@ -3319,6 +3384,9 @@ public:
   void visit(const Decl *D) {
     if (D->isInvalid())
       writeDeclErrorFlag();
+
+    if (auto *value = dyn_cast<ValueDecl>(D))
+      writeDeserializationSafety(value);
 
     // Emit attributes (if any).
     for (auto Attr : D->getAttrs())
