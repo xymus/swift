@@ -1362,12 +1362,7 @@ ModuleFile::getSubstitutionMapChecked(serialization::SubstitutionMapID id) {
   SmallVector<Type, 4> replacementTypes;
   replacementTypes.reserve(replacementTypeIDs.size());
   for (auto typeID : replacementTypeIDs) {
-    auto typeOrError = getTypeChecked(typeID);
-    if (!typeOrError) { // For opaque, remove?
-      consumeError(typeOrError.takeError());
-      continue;
-    }
-    replacementTypes.push_back(typeOrError.get());
+    replacementTypes.push_back(getType(typeID));
   }
 
   // Read the conformances.
@@ -3611,10 +3606,7 @@ public:
     if (declOrOffset.isComplete())
       return declOrOffset;
 
-    auto resultTypeOrError = MF.getTypeChecked(resultInterfaceTypeID);
-    if (!resultTypeOrError)
-      return resultTypeOrError.takeError();
-    const auto resultType = resultTypeOrError.get();
+    const auto resultType = MF.getType(resultInterfaceTypeID);
     if (declOrOffset.isComplete())
       return declOrOffset;
 
@@ -3687,13 +3679,9 @@ public:
                               std::move(needsNewVTableEntry));
 
     if (opaqueReturnTypeID) {
-      auto declOrError = MF.getDeclChecked(opaqueReturnTypeID);
-      if (!declOrError)
-        return declOrError.takeError();
-
       ctx.evaluator.cacheOutput(
           OpaqueResultTypeRequest{fn},
-          cast<OpaqueTypeDecl>(declOrError.get()));
+          cast<OpaqueTypeDecl>(MF.getDecl(opaqueReturnTypeID)));
     }
 
     if (!isAccessor)
