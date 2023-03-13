@@ -157,6 +157,23 @@ bool ArgsToFrontendOptionsConverter::convert(
 
   Opts.DowngradeInterfaceVerificationError |=
     Args.hasArg(OPT_downgrade_typecheck_interface_error);
+
+  // Downgrade verification to warnigs for projects specified by the env var.
+  StringRef forceDowngradeVerification =
+    StringRef(getenv("SWIFT_FORCE_DOWNGRADE_VERIFICATION"));
+  if (const Arg *ModuleNameArg = Args.getLastArg(OPT_module_name)) {
+    auto moduleName = ModuleNameArg->getValue();
+    while (!forceDowngradeVerification.empty()) {
+      StringRef item, tail;
+      std::tie(item, tail) = forceDowngradeVerification.split(',');
+      if (item == moduleName) {
+        Opts.DowngradeInterfaceVerificationError = true;
+        break;
+      }
+      forceDowngradeVerification = tail;
+    }
+  }
+
   computePrintStatsOptions();
   computeDebugTimeOptions();
   computeTBDOptions();
