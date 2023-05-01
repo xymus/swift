@@ -872,6 +872,31 @@ ERROR(need_hermetic_seal_to_import_module,none,
       "current compilation does not have -experimental-hermetic-seal-at-link",
       (Identifier))
 
+ERROR(modularization_issue_moved,Fatal,
+      "module reference to top-level %0 broken by a context change, "
+      "was found in %1 when building '%2', "
+      "but now a candidate is found only in %3. "
+      "Audit related headers or uninstall SDK roots.",
+      (DeclName, Identifier, StringRef, Identifier))
+ERROR(modularization_issue_type_changed,Fatal,
+      "module reference to top-level %0 broken by a context change, "
+      "its type changed since building '%2', "
+      "it was in %1 now found in %3. "
+      "Ensure Swift language version match between modules or uninstall SDK roots.",
+      (DeclName, Identifier, StringRef, Identifier))
+ERROR(modularization_issue_not_found,Fatal,
+      "module reference to top-level %0 broken by a context change, "
+      "module '%2' references %0 in %1, but it cannot be found in this build. "
+      "Audit related headers or uninstall SDK roots.",
+      (DeclName, Identifier, StringRef, Identifier))
+
+NOTE(modularization_issue_effect_extension_error,none,
+     "could not deserialize extension",
+     ())
+NOTE(modularization_issue_effect_type_error,none,
+     "could not deserialize type for %0",
+     (DeclName))
+
 ERROR(reserved_member_name,none,
       "type member must not be named %0, since it would conflict with the"
       " 'foo.%1' expression", (DeclName, StringRef))
