@@ -2451,7 +2451,7 @@ void swift::diagnoseUnnecessaryPublicImports(SourceFile &SF) {
 
       if (levelUsed == AccessLevel::Package) {
         inFlight.fixItReplace(import.accessLevelRange, "package");
-      } else if (ctx.isSwiftVersionAtLeast(6)) {
+      } else if (ctx.LangOpts.hasFeature(Feature::InternalImports)) {
         // Let it default to internal.
         inFlight.fixItRemove(import.accessLevelRange);
       } else {

@@ -310,7 +310,7 @@ TypeCheckSourceFileRequest::evaluate(Evaluator &eval, SourceFile *SF) const {
       CheckInconsistentSPIOnlyImportsRequest{SF},
       {});
 
-  if (!Ctx.LangOpts.isSwiftVersionAtLeast(6)) {
+  if (!Ctx.LangOpts.hasFeature(Feature::InternalImports)) {
     evaluateOrDefault(
       Ctx.evaluator,
       CheckInconsistentAccessLevelOnImport{SF},

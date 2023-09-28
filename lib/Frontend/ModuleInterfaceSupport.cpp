@@ -348,7 +348,7 @@ static void printImports(raw_ostream &out,
         out << "@_spi(" << spiName << ") ";
     }
 
-    if (M->getASTContext().LangOpts.isSwiftVersionAtLeast(6)) {
+    if (M->getASTContext().LangOpts.hasFeature(Feature::InternalImports)) {
       out << "public ";
     }
 
