@@ -2,7 +2,7 @@
 /// a non-resilient module.
 
 // RUN: %empty-directory(%t)
-// RUN: split-file %s %t
+// RUN: split-file --leading-lines %s %t
 
 // REQUIRES: asserts
 
@@ -23,6 +23,9 @@
 // RUN:   -enable-library-evolution -swift-version 6 \
 // RUN:   -enable-experimental-feature AccessLevelOnImport -verify \
 // RUN:   -package-name pkg
+// RUN: %target-swift-frontend -typecheck %t/Client_Swift6.swift -I %t \
+// RUN:   -enable-library-evolution -enable-upcoming-feature InternalImports \
+// RUN:   -verify -package-name pkg
 
 /// A non-resilient client doesn't complain.
 // RUN: %target-swift-frontend -typecheck %t/Client_Swift5.swift -I %t \
@@ -32,6 +35,9 @@
 // RUN: %target-swift-frontend -typecheck %t/Client_Swift6.swift -I %t \
 // RUN:   -swift-version 6 \
 // RUN:   -enable-experimental-feature AccessLevelOnImport \
+// RUN:   -package-name pkg
+// RUN: %target-swift-frontend -typecheck %t/Client_Swift6.swift -I %t \
+// RUN:   -enable-upcoming-feature InternalImports \
 // RUN:   -package-name pkg
 
 //--- DefaultLib.swift
@@ -55,7 +61,7 @@ private import PrivateLib
 //--- Client_Swift6.swift
 
 import DefaultLib
-public import PublicLib // expected-error {{module 'PublicLib' was not compiled with library evolution support; using it means binary compatibility for 'Client_Swift6' can't be guaranteed}} {{1-7=internal}}
+public import PublicLib // expected-error {{module 'PublicLib' was not compiled with library evolution support; using it means binary compatibility for 'Client_Swift6' can't be guaranteed}} {{1-8=}}
 // expected-warning @-1 {{public import of 'PublicLib' was not used in public declarations or inlinable code}}
 package import PackageLib
 // expected-warning @-1 {{package import of 'PackageLib' was not used in package declarations}}

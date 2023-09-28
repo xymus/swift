@@ -821,7 +821,11 @@ void UnboundImport::validateResilience(NullablePtr<ModuleDecl> topLevelModule,
                                      topLevelModule.get()->getName(),
                                      SF.getParentModule()->getName());
 
-  if (ctx.LangOpts.hasFeature(Feature::AccessLevelOnImport)) {
+  if (ctx.LangOpts.hasFeature(Feature::InternalImports)) {
+    // This will catch Swift 6 language mode as well where
+    // it will be reported as an error.
+    inFlight.fixItRemove(import.accessLevelRange);
+  } else if (ctx.LangOpts.hasFeature(Feature::AccessLevelOnImport)) {
     SourceRange attrRange = import.accessLevelRange;
     if (attrRange.isValid())
       inFlight.fixItReplace(attrRange, "internal");
