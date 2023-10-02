@@ -11,6 +11,8 @@
 // RUN: %target-swift-frontend -emit-module %t/ConformanceDefinition.swift -o %t -I %t
 // RUN: %target-swift-frontend -emit-module %t/AliasesBase.swift -o %t
 // RUN: %target-swift-frontend -emit-module %t/Aliases.swift -o %t -I %t
+// RUN: %target-swift-frontend -emit-module %t/ExtensionA.swift -o %t -I %t
+// RUN: %target-swift-frontend -emit-module %t/ExtensionB.swift -o %t -I %t
 // RUN: %target-swift-frontend -emit-module %t/UnusedImport.swift -o %t -I %t
 // RUN: %target-swift-frontend -emit-module %t/UnusedPackageImport.swift -o %t -I %t
 // RUN: %target-swift-frontend -emit-module %t/ImportNotUseFromAPI.swift -o %t -I %t
@@ -58,6 +60,18 @@ open class Clazz {}
 import AliasesBase
 public typealias ClazzAlias = Clazz
 
+//--- ExtensionA.swift
+import ConformanceBaseTypes
+extension ConformingType {
+    public func extFuncA() {}
+}
+
+//--- ExtensionB.swift
+import ConformanceBaseTypes
+extension ConformingType {
+    public func extFuncB() {}
+}
+
 //--- UnusedImport.swift
 
 //--- UnusedPackageImport.swift
@@ -84,6 +98,8 @@ public import ConformanceBaseTypes
 public import ConformanceDefinition
 public import AliasesBase
 public import Aliases
+public import ExtensionA
+public import ExtensionB
 
 public import UnusedImport // expected-warning {{public import of 'UnusedImport' was not used in public declarations or inlinable code}} {{1-8=}}
 public import UnusedImport // expected-warning {{public import of 'UnusedImport' was not used in public declarations or inlinable code}} {{1-8=}}
@@ -114,7 +130,7 @@ public func useConformance(_ a: any Proto = ConformingType()) {}
 // expected-remark @-3 {{struct 'ConformingType' is imported via 'ConformanceBaseTypes'}}
 // expected-remark @-4 {{initializer 'init()' is imported via 'ConformanceBaseTypes'}}
 
-@usableFromInline internal func useInDefaultValue(_ a: TypeUsedInSignature) {} // expected-remark {{struct 'TypeUsedInSignature' is imported via 'DepUsedInSignature'}}
+@usableFromInline internal func usableFromInlineFunc(_ a: TypeUsedInSignature) {} // expected-remark {{struct 'TypeUsedInSignature' is imported via 'DepUsedInSignature'}}
 
 @inlinable
 public func publicFuncUsesPrivate() {
@@ -139,6 +155,12 @@ public func publicFuncUsesPrivate() {
   let _: ClazzAlias
   // expected-remark @-1 {{type alias 'ClazzAlias' is imported via 'Aliases'}}
   // expected-remark @-2 2 {{typealias underlying type class 'Clazz' is imported via 'AliasesBase'}}
+
+  let x = ConformingType()
+  // expected-remark @-1 {{struct 'ConformingType' is imported via 'ConformanceBaseTypes'}}
+  // expected-remark @-2 {{initializer 'init()' is imported via 'ConformanceBaseTypes'}}
+  x.extFuncA() // expected-remark {{instance method 'extFuncA()' is imported via 'ExtensionA'}}
+  x.extFuncB() // expected-remark {{instance method 'extFuncB()' is imported via 'ExtensionB'}}
 }
 
 public struct Struct { // expected-remark {{implicitly used struct 'Int' is imported via 'Swift'}}
