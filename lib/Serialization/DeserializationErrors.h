@@ -21,6 +21,16 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/PrettyStackTrace.h"
 
+// Unwrap an Expected<> variable following the typical deserialization pattern:
+// - On a value, assign it to Output.
+// - On an error, return it to bubble it up to the caller.
+#define UNWRAP(Input, Output) { \
+  auto ValueOrError = Input; \
+  if (!ValueOrError) \
+      return ValueOrError.takeError(); \
+  Output = ValueOrError.get(); \
+}
+
 namespace swift {
 namespace serialization {
 

@@ -623,7 +623,9 @@ SILDeserializer::readSILFunctionChecked(DeclID FID, SILFunction *existingFn,
 
   ValueDecl *clangNodeOwner = nullptr;
   if (clangNodeOwnerID != 0) {
-    clangNodeOwner = dyn_cast_or_null<ValueDecl>(MF->getDecl(clangNodeOwnerID));
+    Decl *clangNodeOwnerDecl;
+    UNWRAP(MF->getDeclChecked(clangNodeOwnerID), clangNodeOwnerDecl);
+    auto clangNodeOwner = dyn_cast_or_null<ValueDecl>(clangNodeOwnerDecl);
     if (!clangNodeOwner)
       return MF->diagnoseFatal("invalid clang node owner for SILFunction");
   }
