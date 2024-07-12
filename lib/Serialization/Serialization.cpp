@@ -315,10 +315,10 @@ namespace {
       uint32_t keyLength = key.str().size();
       assert(keyLength == static_cast<uint16_t>(keyLength));
       uint32_t dataLength = (sizeof(uint32_t) * 2) * data.size();
-      assert(dataLength == static_cast<uint16_t>(dataLength));
+      assert(dataLength == static_cast<uint32_t>(dataLength));
       endian::Writer writer(out, little);
       writer.write<uint16_t>(keyLength);
-      writer.write<uint16_t>(dataLength);
+      writer.write<uint32_t>(dataLength);
       return { keyLength, dataLength };
     }
 

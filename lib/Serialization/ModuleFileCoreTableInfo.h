@@ -219,7 +219,7 @@ public:
   static std::pair<unsigned, unsigned> ReadKeyDataLength(const uint8_t *&data) {
     using namespace llvm::support;
     unsigned keyLength = endian::readNext<uint16_t, little, unaligned>(data);
-    unsigned dataLength = endian::readNext<uint16_t, little, unaligned>(data);
+    unsigned dataLength = endian::readNext<uint32_t, little, unaligned>(data);
     return { keyLength, dataLength };
   }
 
