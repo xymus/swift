@@ -863,12 +863,12 @@ void UnboundImport::validateResilience(NullablePtr<ModuleDecl> topLevelModule,
       inFlight.fixItReplace(attrRange, "internal");
     else
       inFlight.fixItInsert(import.importLoc, "internal ");
-
-    // Downgrade to warning only in pre-Swift 6 mode and
-    // when not using the experimental flag.
-    if (!ctx.LangOpts.hasFeature(Feature::AccessLevelOnImport))
-      inFlight.limitBehavior(DiagnosticBehavior::Warning);
   }
+
+  // Report as an error only for API library level modules where
+  // this can break the SDK.
+  if (SF.getParentModule()->getLibraryLevel() != LibraryLevel::API)
+    inFlight.limitBehavior(DiagnosticBehavior::Warning);
 }
 
 void UnboundImport::diagnoseInvalidAttr(DeclAttrKind attrKind,
