@@ -950,10 +950,10 @@ public:
         success = writeEnum(ED);
       } else if (auto CD = dyn_cast<ClassDecl>(D)) {
         success = writeClass(CD);
+      } else if (auto FD = dyn_cast<FuncDecl>(D)) {
+        success = writeFunc(FD);
       } else if (outputLangMode == OutputLanguageMode::Cxx) {
-        if (auto FD = dyn_cast<FuncDecl>(D))
-          success = writeFunc(FD);
-        else if (auto SD = dyn_cast<StructDecl>(D))
+        if (auto SD = dyn_cast<StructDecl>(D))
           success = writeStruct(SD);
         else if (auto *vd = dyn_cast<ValueDecl>(D))
           topLevelEmissionScope.additionalUnrepresentableDeclarations.push_back(
@@ -961,8 +961,6 @@ public:
       } else if (isa<ValueDecl>(D)) {
         if (auto PD = dyn_cast<ProtocolDecl>(D))
           success = writeProtocol(PD);
-        else if (auto ED = dyn_cast<FuncDecl>(D))
-          success = writeFunc(ED);
         else
           llvm_unreachable("unknown top-level ObjC value decl");
 
