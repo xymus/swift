@@ -392,14 +392,14 @@ class ModuleWriter {
   bool dependsOnStdlib = false;
 
 public:
-  ModuleWriter(raw_ostream &os, raw_ostream &prologueOS,
+  ModuleWriter(raw_ostream &osC, raw_ostream &os, raw_ostream &prologueOS,
                llvm::SmallPtrSetImpl<ImportModuleTy> &imports, ModuleDecl &mod,
                SwiftToClangInteropContext &interopContext, AccessLevel access,
                bool requiresExposedAttribute, llvm::StringSet<> &exposedModules,
                OutputLanguageMode outputLang)
       : os(os), imports(imports), M(mod),
         outOfLineDefinitionsOS(outOfLineDefinitions),
-        printer(M, os, prologueOS, outOfLineDefinitionsOS, objcDelayedMembers,
+        printer(M, os, osC, prologueOS, outOfLineDefinitionsOS, objcDelayedMembers,
                 topLevelEmissionScope, typeMapping, interopContext, access,
                 requiresExposedAttribute, exposedModules, outputLang),
         outputLangMode(outputLang) {}
@@ -1105,11 +1105,12 @@ static AccessLevel getRequiredAccess(const ModuleDecl &M) {
 }
 
 void swift::printModuleContentsAsObjC(
-    raw_ostream &os, llvm::SmallPtrSetImpl<ImportModuleTy> &imports,
+    raw_ostream &osC, raw_ostream &osObjC,
+    llvm::SmallPtrSetImpl<ImportModuleTy> &imports,
     ModuleDecl &M, SwiftToClangInteropContext &interopContext) {
   llvm::raw_null_ostream prologueOS;
   llvm::StringSet<> exposedModules;
-  ModuleWriter(os, prologueOS, imports, M, interopContext, getRequiredAccess(M),
+  ModuleWriter(osC, osObjC, prologueOS, imports, M, interopContext, getRequiredAccess(M),
                /*requiresExposedAttribute=*/false, exposedModules,
                OutputLanguageMode::ObjC)
       .write();
@@ -1133,7 +1134,7 @@ EmittedClangHeaderDependencyInfo swift::printModuleContentsAsCxx(
   os << "\", usrValue)\n";
 
   // FIXME: Use getRequiredAccess once @expose is supported.
-  ModuleWriter writer(moduleOS, prologueOS, info.imports, M, interopContext,
+  ModuleWriter writer(moduleOS, moduleOS, prologueOS, info.imports, M, interopContext,
                       AccessLevel::Public, requiresExposedAttribute,
                       exposedModules, OutputLanguageMode::Cxx);
   writer.write();

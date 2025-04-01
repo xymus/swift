@@ -59,6 +59,7 @@ private:
 
   ModuleDecl &M;
   raw_ostream &os;
+  raw_ostream &osC;
   raw_ostream &prologueOS;
   raw_ostream &outOfLineDefinitionsOS;
   const DelayedMemberSet &objcDelayedMembers;
@@ -78,7 +79,8 @@ private:
   Implementation getImpl();
 
 public:
-  DeclAndTypePrinter(ModuleDecl &mod, raw_ostream &out, raw_ostream &prologueOS,
+  DeclAndTypePrinter(ModuleDecl &mod, raw_ostream &out, raw_ostream &cOS,
+                     raw_ostream &prologueOS,
                      raw_ostream &outOfLineDefinitionsOS,
                      const DelayedMemberSet &delayed,
                      CxxDeclEmissionScope &topLevelEmissionScope,
@@ -87,7 +89,7 @@ public:
                      AccessLevel access, bool requiresExposedAttribute,
                      llvm::StringSet<> &exposedModules,
                      OutputLanguageMode outputLang)
-      : M(mod), os(out), prologueOS(prologueOS),
+      : M(mod), os(out), osC(cOS), prologueOS(prologueOS),
         outOfLineDefinitionsOS(outOfLineDefinitionsOS),
         objcDelayedMembers(delayed),
         cxxDeclEmissionScope(&topLevelEmissionScope), typeMapping(typeMapping),
@@ -105,7 +107,7 @@ public:
 
   DeclAndTypePrinter withOutputStream(raw_ostream &s) {
     return DeclAndTypePrinter(
-        M, s, prologueOS, outOfLineDefinitionsOS, objcDelayedMembers,
+        M, s, osC, prologueOS, outOfLineDefinitionsOS, objcDelayedMembers,
         *cxxDeclEmissionScope, typeMapping, interopContext, minRequiredAccess,
         requiresExposedAttribute, exposedModules, outputLang);
   }

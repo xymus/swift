@@ -32,7 +32,7 @@ using ImportModuleTy = PointerUnion<ModuleDecl*, const clang::Module*>;
 
 /// Prints the declarations of \p M to \p os and collecting imports in
 /// \p imports along the way.
-void printModuleContentsAsObjC(raw_ostream &os,
+void printModuleContentsAsObjC(raw_ostream &osC, raw_ostream &osObjC,
                                llvm::SmallPtrSetImpl<ImportModuleTy> &imports,
                                ModuleDecl &M,
                                SwiftToClangInteropContext &interopContext);
