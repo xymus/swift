@@ -534,6 +534,7 @@ static void writePostImportPrologue(raw_ostream &os, ModuleDecl &M) {
         "#endif\n"
         "#pragma clang diagnostic ignored \"-Wunknown-pragmas\"\n"
         "#pragma clang diagnostic ignored \"-Wnullability\"\n"
+        "#pragma clang diagnostic ignored \"-Wnullability-extension\"\n"
         "#pragma clang diagnostic ignored "
         "\"-Wdollar-in-identifier-extension\"\n"
         "#pragma clang diagnostic ignored "
