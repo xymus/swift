@@ -61,6 +61,12 @@ static void emitObjCConditional(raw_ostream &out,
   emitLanguageConditional(out, "__OBJC__", objcCase, nonObjCCase);
 }
 
+static void emitCConditional(raw_ostream &out,
+                             llvm::function_ref<void()> cCase,
+                             llvm::function_ref<void()> nonCCase = {}) {
+  emitLanguageConditional(out, "__STDC__", cCase, nonCCase);
+}
+
 static void writePtrauthPrologue(raw_ostream &os, ASTContext &ctx) {
   emitCxxConditional(os, [&]() {
     ClangSyntaxPrinter(ctx, os).printIgnoredDiagnosticBlock(
@@ -585,7 +591,10 @@ bool swift::printAsClangHeader(raw_ostream &os, ModuleDecl *M,
   SmallPtrSet<ImportModuleTy, 8> imports;
   std::string objcModuleContentsBuf;
   llvm::raw_string_ostream objcModuleContents{objcModuleContentsBuf};
-  printModuleContentsAsObjC(objcModuleContents, imports, *M, interopContext);
+  std::string cModuleContentsBuf;
+  llvm::raw_string_ostream cModuleContents{cModuleContentsBuf};
+  printModuleContentsAsObjC(cModuleContents, objcModuleContents, imports, *M, interopContext);
+
   writePrologue(os, M->getASTContext(), computeMacroGuard(M));
   emitObjCConditional(os, [&] {
     llvm::StringMap<StringRef> exposedModuleHeaderNames;
@@ -659,6 +668,10 @@ bool swift::printAsClangHeader(raw_ostream &os, ModuleDecl *M,
 
       os << moduleContents.str();
   });
+  if (M->getASTContext().LangOpts.hasFeature(Feature::CDeclOfficial)) {
+    os << "// Module content for C clients\n";
+    emitCConditional(os, [&] { os << "\n" << cModuleContents.str(); });
+  }
   writeEpilogue(os);
 
   return false;
