@@ -645,8 +645,8 @@ public:
       : DeclAttribute(DeclAttrKind::CDecl, AtLoc, Range, Implicit), Name(Name) {
   }
 
-  CDeclAttr(StringRef Name, bool Implicit)
-    : CDeclAttr(Name, SourceLoc(), SourceRange(), Implicit) {}
+  CDeclAttr(StringRef Name, bool Implicit, bool Underscored)
+    : CDeclAttr(Name, SourceLoc(), SourceRange(), Implicit, Underscored) {}
 
   /// The symbol name.
   const StringRef Name;
@@ -657,6 +657,10 @@ public:
 
   CDeclAttr *clone(ASTContext &ctx) const {
     return new (ctx) CDeclAttr(Name, AtLoc, Range, isImplicit());
+  }
+
+  bool isUnderscored() const {
+    return getAttrName().starts_with("_");
   }
 };
 

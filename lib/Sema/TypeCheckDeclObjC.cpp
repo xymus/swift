@@ -4152,6 +4152,11 @@ TypeCheckCDeclAttributeRequest::evaluate(Evaluator &evaluator,
                               FuncDecl *FD, CDeclAttr *attr) const {
   auto &ctx = FD->getASTContext();
 
+  if (!attr->isUnderscored() &&
+      !ctx.LangOpts.hasFeature(Feature::CDeclOfficial)) {
+    ctx.Diags.diagnose(attr->getLocation(), diag::cdecl_feature_required);
+  }
+
   std::optional<ForeignAsyncConvention> asyncConvention;
   std::optional<ForeignErrorConvention> errorConvention;
   ObjCReason reason(ObjCReason::ExplicitlyCDecl, attr);
