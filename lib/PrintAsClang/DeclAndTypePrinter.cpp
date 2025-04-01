@@ -1477,24 +1477,40 @@ private:
 
   // Print out the function signature for a @_cdecl function.
   void printAbstractFunctionAsCFunction(FuncDecl *FD) {
+    assert(!FD->getGenericSignature() &&
+           "top-level generic functions not supported here");
+    assert(FD->getAttrs().hasAttribute<CDeclAttr>() && "not a cdecl function");
+
     printDocumentationComment(FD);
     std::optional<ForeignAsyncConvention> asyncConvention =
         FD->getForeignAsyncConvention();
     std::optional<ForeignErrorConvention> errorConvention =
         FD->getForeignErrorConvention();
-    assert(!FD->getGenericSignature() &&
-           "top-level generic functions not supported here");
     auto funcTy = FD->getInterfaceType()->castTo<FunctionType>();
     auto resultTy = getForeignResultType(
         FD, funcTy, asyncConvention, errorConvention);
 
-    assert(FD->getAttrs().hasAttribute<CDeclAttr>() && "not a cdecl function");
-    os << "SWIFT_EXTERN ";
-    printFunctionDeclAsCFunctionDecl(FD, FD->getCDeclName(), resultTy);
-    os << " SWIFT_NOEXCEPT";
-    printFunctionClangAttributes(FD, funcTy);
-    printAvailability(FD);
-    os << ";\n";
+    auto doPrintFunction = [&]{
+      os << "SWIFT_EXTERN ";
+      printFunctionDeclAsCFunctionDecl(FD, FD->getCDeclName(), resultTy);
+      os << " SWIFT_NOEXCEPT";
+      printFunctionClangAttributes(FD, funcTy);
+      printAvailability(FD);
+      os << ";\n";
+    };
+
+    // Print ObjC version
+    doPrintFunction();
+
+    // Print C version
+    {
+      os << "#else // if ! __OBJC__\n";
+      llvm::SaveAndRestore<OutputLanguageMode>
+        OML(outputLang, OutputLanguageMode::C);
+      doPrintFunction();
+      os << "#endif // !__OBJC__\n";
+      os << "#if defined(__OBJC__)\n";
+    }
   }
 
   struct FunctionSwiftABIInformation {
@@ -2290,6 +2306,13 @@ private:
     return false;
   }
 
+  std::optional<PrimitiveTypeMapping::ClangTypeInfo> getKnownType(const TypeDecl *typeDecl) {
+    if (outputLang == OutputLanguageMode::C)
+      return owningPrinter.typeMapping.getKnownCTypeInfo(typeDecl);
+
+    return owningPrinter.typeMapping.getKnownObjCTypeInfo(typeDecl);
+  }
+
   /// If \p typeDecl is one of the standard library types used to map in Clang
   /// primitives and basic types, print out the appropriate spelling and
   /// return true.
@@ -2298,8 +2321,7 @@ private:
   /// for interfacing with C and Objective-C.
   bool printIfKnownSimpleType(const TypeDecl *typeDecl,
                               std::optional<OptionalTypeKind> optionalKind) {
-    auto knownTypeInfo =
-        owningPrinter.typeMapping.getKnownObjCTypeInfo(typeDecl);
+    auto knownTypeInfo = getKnownType(typeDecl);
     if (!knownTypeInfo)
       return false;
     os << knownTypeInfo->name;
