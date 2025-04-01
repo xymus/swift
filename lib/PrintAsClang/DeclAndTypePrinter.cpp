@@ -1914,8 +1914,16 @@ private:
     }
     if (FD->getDeclContext()->isTypeContext())
       printAbstractFunctionAsMethod(FD, FD->isStatic());
-    else
+    else {
       printAbstractFunctionAsCFunction(FD);
+
+      // Print C version
+      if (getASTContext().LangOpts.hasFeature(Feature::CDeclOfficial)) {
+        auto i = Implementation(owningPrinter.osC, owningPrinter,
+                                OutputLanguageMode::C);
+        i.printAbstractFunctionAsCFunction(FD);
+      }
+    }
   }
 
   void visitConstructorDecl(ConstructorDecl *CD) {
