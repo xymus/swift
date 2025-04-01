@@ -1503,14 +1503,21 @@ private:
     doPrintFunction();
 
     // Print C version
-    {
-      os << "#else // if ! __OBJC__\n";
-      llvm::SaveAndRestore<OutputLanguageMode>
-        OML(outputLang, OutputLanguageMode::C);
-      doPrintFunction();
-      os << "#endif // !__OBJC__\n";
-      os << "#if defined(__OBJC__)\n";
-    }
+    //auto i = Implementation(owningPrinter.osC, owningPrinter, OutputLanguageMode::C);
+    //i.os << "SWIFT_EXTERN ";
+    //i.printFunctionDeclAsCFunctionDecl(FD, FD->getCDeclName(), resultTy);
+    //i.os << " SWIFT_NOEXCEPT";
+    //i.printFunctionClangAttributes(FD, funcTy);
+    //i.printAvailability(FD);
+    //i.os << ";\n";
+    //{
+    //  os << "#else // if ! __OBJC__\n";
+    //  llvm::SaveAndRestore<OutputLanguageMode>
+    //    OML(outputLang, OutputLanguageMode::C);
+    //  doPrintFunction();
+    //  os << "#endif // !__OBJC__\n";
+    //  os << "#if defined(__OBJC__)\n";
+    //}
   }
 
   struct FunctionSwiftABIInformation {
