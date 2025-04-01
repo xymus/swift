@@ -34,28 +34,31 @@
 
 using namespace swift;
 
+static void emitLanguageConditional(raw_ostream &out,
+                                    StringRef guard,
+                                    llvm::function_ref<void()> langCase,
+                                    llvm::function_ref<void()> elseCase = {}) {
+  out << "#if defined(";
+  out << guard;
+  out << ")\n";
+  langCase();
+  if (elseCase) {
+    out << "#else\n";
+    elseCase();
+  }
+  out << "#endif\n";
+}
+
 static void emitCxxConditional(raw_ostream &out,
                                llvm::function_ref<void()> cxxCase,
                                llvm::function_ref<void()> cCase = {}) {
-  out << "#if defined(__cplusplus)\n";
-  cxxCase();
-  if (cCase) {
-    out << "#else\n";
-    cCase();
-  }
-  out << "#endif\n";
+  emitLanguageConditional(out, "__cplusplus", cxxCase, cCase);
 }
 
 static void emitObjCConditional(raw_ostream &out,
                                 llvm::function_ref<void()> objcCase,
                                 llvm::function_ref<void()> nonObjCCase = {}) {
-  out << "#if defined(__OBJC__)\n";
-  objcCase();
-  if (nonObjCCase) {
-    out << "#else\n";
-    nonObjCCase();
-  }
-  out << "#endif\n";
+  emitLanguageConditional(out, "__OBJC__", objcCase, nonObjCCase);
 }
 
 static void writePtrauthPrologue(raw_ostream &os, ASTContext &ctx) {
