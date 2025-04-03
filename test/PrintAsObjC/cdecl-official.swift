@@ -27,6 +27,15 @@
 
 // C     HECK-LABEL: // Module content for C clients
 
+#if os(Windows) && (arch(x86_64) || arch(arm64))
+@objc enum CEnum: Int32 { case A, B }
+#else
+@objc enum CEnum: Int { case A, B }
+#endif
+
+@cdecl("cEnum")
+func cEnum(x: CEnum) {}
+
 /// Documentation
 @cdecl("foo_bar")
 func foo(x: Int, bar y: Int) {}
