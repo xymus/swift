@@ -77,7 +77,7 @@ CONTEXTUAL_SIMPLE_DECL_ATTR(final, Final,
   2)
 
 DECL_ATTR(objc, ObjC,
-  OnAbstractFunction | OnClass | OnProtocol | OnExtension | OnVar | OnSubscript | OnEnum | OnEnumElement,
+  OnAbstractFunction | OnClass | OnProtocol | OnExtension | OnVar | OnSubscript | OnEnum | OnEnumElement | OnFunc | OnAccessor,
   ABIBreakingToAdd | ABIBreakingToRemove | APIStableToAdd | APIStableToRemove,
   3)
 

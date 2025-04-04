@@ -460,6 +460,7 @@ public:
 
   void visitAvailableAttr(AvailableAttr *attr);
 
+  void visitCDeclAttrExt(DeclAttribute *attr, StringRef name);
   void visitCDeclAttr(CDeclAttr *attr);
   void visitExposeAttr(ExposeAttr *attr);
   void visitExternAttr(ExternAttr *attr);
@@ -1516,6 +1517,11 @@ static bool checkObjCDeclContext(Decl *D) {
   if (auto *PD = dyn_cast<ProtocolDecl>(DC))
     if (PD->isObjC())
       return true;
+  if (isa<AbstractFunctionDecl>(D) &&
+      // TODO DC isa file level
+      DC->getASTContext().LangOpts.hasFeature(Feature::CDeclOfficial))
+    return true;
+
   return false;
 }
 
@@ -1607,6 +1613,11 @@ void AttributeChecker::visitObjCAttr(ObjCAttr *attr) {
     if (!checkObjCDeclContext(D))
       error = diag::invalid_objc_decl_context;
     /* ok */
+  } else if (isa<AbstractFunctionDecl>(D)) {
+    if (!Ctx.LangOpts.hasFeature(Feature::CDeclOfficial)) {
+      error = diag::top_level_decl_objc_needs_feature;
+      //error = diag::invalid_objc_decl;
+    }
   } else {
     error = diag::invalid_objc_decl;
   }
@@ -1634,6 +1645,7 @@ void AttributeChecker::visitObjCAttr(ObjCAttr *attr) {
     if (isa<ClassDecl>(D) || isa<ProtocolDecl>(D) || isa<VarDecl>(D)
         || isa<EnumDecl>(D) || isa<EnumElementDecl>(D)
         || isa<ExtensionDecl>(D)) {
+    //visitCDeclAttrExt(attr, attr->getName();
       // Types and properties can only have nullary
       // names. Complain and recover by chopping off everything
       // after the first name.
@@ -1727,6 +1739,9 @@ void AttributeChecker::visitObjCAttr(ObjCAttr *attr) {
     diagnoseAndRemoveAttr(attr, diag::objc_enum_case_req_name)
         .limitBehavior(behavior);
     reason.describe(D);
+  } else if (auto *FD = dyn_cast<AbstractFunctionDecl>(D)) {
+    // and top-level
+    // Error, needs name.
   }
 
   // Diagnose an @objc attribute used without importing Foundation.
@@ -2474,20 +2489,24 @@ static bool canDeclareSymbolName(StringRef symbol, ModuleDecl *fromModule) {
   return true;
 }
 
-void AttributeChecker::visitCDeclAttr(CDeclAttr *attr) {
+void AttributeChecker::visitCDeclAttrExt(DeclAttribute *attr, StringRef name) {
   // Only top-level func decls are currently supported.
   if (D->getDeclContext()->isTypeContext())
-    diagnose(attr->getLocation(), diag::cdecl_not_at_top_level);
+    diagnose(attr->getLocation(), diag::cdecl_not_at_top_level); // TODO pass attr text
 
   // The name must not be empty.
-  if (attr->Name.empty())
-    diagnose(attr->getLocation(), diag::cdecl_empty_name);
+  if (name.empty())
+    diagnose(attr->getLocation(), diag::cdecl_empty_name); // TODO pass attr text
 
   // The standard library can use @_cdecl to implement runtime functions.
-  if (!canDeclareSymbolName(attr->Name, D->getModuleContext())) {
+  if (!canDeclareSymbolName(name, D->getModuleContext())) {
       diagnose(attr->getLocation(), diag::reserved_runtime_symbol_name,
-               attr->Name);
+               name); // TODO pass attr text
   }
+}
+
+void AttributeChecker::visitCDeclAttr(CDeclAttr *attr) {
+  visitCDeclAttrExt(attr, attr->Name);
 }
 
 void AttributeChecker::visitExposeAttr(ExposeAttr *attr) {

@@ -6363,6 +6363,9 @@ ERROR(invalid_objc_swift_rooted_class,none,
       "only classes that inherit from NSObject can be declared @objc", ())
 NOTE(invalid_objc_swift_root_class_insert_nsobject,none,
      "inherit from 'NSObject' to silence this error", ())
+ERROR(top_level_decl_objc_needs_feature,none,
+      "@objc on a top-level function requires "
+      "'-enable-experimental-feature CDeclOfficial'", ())
 
 WARNING(objc_header_sorting_arbitrary,none,
         "arbitrarily printing %0 before %1 in generated header; subsequent "
