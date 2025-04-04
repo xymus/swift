@@ -8072,6 +8072,8 @@ public:
   /// instance method.
   bool isObjCInstanceMethod() const;
 
+  std::optional<ForeignLanguage> getCDeclKind() const;
+
   /// Determine whether the name of an argument is an API name by default
   /// depending on the function context.
   bool argumentNameIsAPIByDefault() const;
