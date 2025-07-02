@@ -2095,6 +2095,9 @@ ERROR(cdecl_incompatible_with_objc,none,
 ERROR(cdecl_feature_required,none,
       "'@cdecl' requires '-enable-experimental-feature CDecl'",
       ())
+ERROR(objc_global_function_feature_required,none,
+      "'@objc' on a global function requires '-enable-experimental-feature CDecl'",
+      ())
 
 // @_used and @_section
 ERROR(section_linkage_markers_disabled,none,
@@ -6515,7 +6518,7 @@ ERROR(attr_used_without_required_module, none,
 
 ERROR(invalid_objc_decl_context,none,
       "'@objc' can only be used with members of classes, '@objc' protocols, "
-      "and concrete extensions of classes", ())
+      "concrete extensions of classes and global functions", ())
 ERROR(invalid_objc_decl,none,
       "only classes (and their extensions), non-marker protocols, methods, "
       "initializers, properties, and subscript declarations can be declared"

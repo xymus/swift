@@ -3,7 +3,7 @@
 
 import Foundation
 
-@objc var foo: Any // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+@objc var foo: Any // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
 
 class Foo: NSObject {
   override init() {}

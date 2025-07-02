@@ -57,6 +57,8 @@
 
 using namespace swift;
 
+static bool canDeclareSymbolName(StringRef symbol, ModuleDecl *fromModule);
+
 namespace {
 /// This visits each attribute on a decl.  The visitor should return true if
 /// the attribute is invalid and should be marked as such.
@@ -1480,15 +1482,35 @@ void AttributeChecker::visitObjCAttr(ObjCAttr *attr) {
     else if (attr->hasName() && EED->getParentCase()->getElements().size() > 1)
       error = diag::objc_enum_case_multi;
   } else if (auto *func = dyn_cast<FuncDecl>(D)) {
-    if (!checkObjCDeclContext(D))
-      error = diag::invalid_objc_decl_context;
-    else if (auto accessor = dyn_cast<AccessorDecl>(func))
+    if (!checkObjCDeclContext(D)) {
+      // Not a method, may be a global function in the style of `@cdecl`.
+      auto attrSelector = attr->getName();
+      Identifier cName;
+      if (attrSelector)
+        cName = attrSelector->getSelectorPieces()[0];
+      else
+        cName = func->getBaseIdentifier();
+
+      if (D->getDeclContext()->isTypeContext() || isa<AccessorDecl>(D)) {
+        // Only top-level func decls are supported.
+        error = diag::invalid_objc_decl_context;
+      } else if (!canDeclareSymbolName(cName.str(), func->getModuleContext())) {
+        // The standard library can use @objc to implement runtime functions.
+        diagnose(attr->getLocation(), diag::reserved_runtime_symbol_name,
+                 cName.str());
+        return;
+      } else if (!Ctx.LangOpts.hasFeature(Feature::CDecl)) {
+        // @objc on global functions needs to be enabled via a feature flag.
+        error = diag::objc_global_function_feature_required;
+      }
+    } else if (auto accessor = dyn_cast<AccessorDecl>(func)) {
       if (!accessor->isGetterOrSetter()) {
         diagnoseAndRemoveAttr(attr, diag::objc_observing_accessor, accessor)
             .limitBehavior(behavior);
         reason.describe(D);
         return;
       }
+    }
   } else if (isa<ConstructorDecl>(D) ||
              isa<DestructorDecl>(D) ||
              isa<SubscriptDecl>(D) ||
@@ -1522,7 +1544,7 @@ void AttributeChecker::visitObjCAttr(ObjCAttr *attr) {
   if (auto objcName = attr->getName()) {
     if (isa<ClassDecl>(D) || isa<ProtocolDecl>(D) || isa<VarDecl>(D)
         || isa<EnumDecl>(D) || isa<EnumElementDecl>(D)
-        || isa<ExtensionDecl>(D)) {
+        || isa<ExtensionDecl>(D)) { // Todo global funcs too
       // Types and properties can only have nullary
       // names. Complain and recover by chopping off everything
       // after the first name.

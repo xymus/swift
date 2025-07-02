@@ -92,24 +92,24 @@ class FáncyName {}
 @objc(FancyName)
 extension FáncyName {}
 
-@objc // bad-access-note-move{{subject_globalVar}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+@objc // bad-access-note-move{{subject_globalVar}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
 var subject_globalVar: Int
 
 var subject_getterSetter: Int {
-  @objc // bad-access-note-move{{getter:subject_getterSetter()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{getter:subject_getterSetter()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   get {
     return 0
   }
-  @objc // bad-access-note-move{{setter:subject_getterSetter()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{setter:subject_getterSetter()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   set {
   }
 }
 
 var subject_global_observingAccessorsVar1: Int = 0 {
-  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   willSet {
   }
-  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   didSet {
   }
 }
@@ -159,24 +159,24 @@ class subject_staticVar1 {
   class var staticVar2: Int { return 42 }
 }
 
-@objc // bad-access-note-move{{subject_freeFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{1-7=}}
+@objc // bad-access-note-move{{subject_freeFunc()}} expected-error {{'@objc' on a global function requires '-enable-experimental-feature CDecl'}} {{1-7=}}
 func subject_freeFunc() {
-  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   var subject_localVar: Int
   // expected-warning@-1 {{variable 'subject_localVar' was never used; consider replacing with '_' or removing it}}
 
-  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // expected-error {{'@objc' on a global function requires '-enable-experimental-feature CDecl'}} {{3-9=}}
   func subject_nestedFreeFunc() {
   }
 }
 
-@objc // bad-access-note-move{{subject_genericFunc(t:)}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{1-7=}}
+@objc // bad-access-note-move{{subject_genericFunc(t:)}} expected-error {{'@objc' on a global function requires '-enable-experimental-feature CDecl'}}
 func subject_genericFunc<T>(t: T) {
-  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   var subject_localVar: Int
   // expected-warning@-1 {{variable 'subject_localVar' was never used; consider replacing with '_' or removing it}}
 
-  @objc // expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // expected-error {{'@objc' on a global function requires '-enable-experimental-feature CDecl'}} {{3-9=}}
   func subject_instanceFunc() {}
 }
 
@@ -185,25 +185,25 @@ func subject_funcParam(a: @objc Int) { // expected-error {{attribute can only be
 
 @objc // bad-access-note-move{{subject_struct}} expected-error {{'@objc' attribute cannot be applied to this declaration}} {{1-7=}}
 struct subject_struct {
-  @objc // bad-access-note-move{{subject_struct.subject_instanceVar}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{subject_struct.subject_instanceVar}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   var subject_instanceVar: Int
 
-  @objc // bad-access-note-move{{subject_struct.init()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{subject_struct.init()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   init() {}
 
-  @objc // bad-access-note-move{{subject_struct.subject_instanceFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{subject_struct.subject_instanceFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   func subject_instanceFunc() {}
 }
 
 @objc // bad-access-note-move{{subject_genericStruct}} expected-error {{'@objc' attribute cannot be applied to this declaration}} {{1-7=}}
 struct subject_genericStruct<T> {
-  @objc // bad-access-note-move{{subject_genericStruct.subject_instanceVar}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{subject_genericStruct.subject_instanceVar}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   var subject_instanceVar: Int
 
-  @objc // bad-access-note-move{{subject_genericStruct.init()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{subject_genericStruct.init()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   init() {}
 
-  @objc // bad-access-note-move{{subject_genericStruct.subject_instanceFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{subject_genericStruct.subject_instanceFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   func subject_instanceFunc() {}
 }
 
@@ -285,10 +285,10 @@ enum subject_enum: Int {
   @nonobjc // expected-error {{'@nonobjc' attribute cannot be applied to this declaration}}
   case subject_enumElement7
 
-  @objc // bad-access-note-move{{subject_enum.init()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{subject_enum.init()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   init() {}
 
-  @objc // bad-access-note-move{{subject_enum.subject_instanceFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}} {{3-9=}}
+  @objc // bad-access-note-move{{subject_enum.subject_instanceFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}} {{3-9=}}
   func subject_instanceFunc() {}
 }
 
@@ -324,13 +324,13 @@ protocol subject_protocol5 : Protocol_Class1 {} // expected-error {{'@objc' prot
 protocol subject_protocol6 : Protocol_ObjC1 {}
 
 protocol subject_containerProtocol1 {
-  @objc // bad-access-note-move{{subject_containerProtocol1.subject_instanceVar}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{subject_containerProtocol1.subject_instanceVar}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   var subject_instanceVar: Int { get }
 
-  @objc // bad-access-note-move{{subject_containerProtocol1.subject_instanceFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{subject_containerProtocol1.subject_instanceFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   func subject_instanceFunc()
 
-  @objc // bad-access-note-move{{subject_containerProtocol1.subject_staticFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{subject_containerProtocol1.subject_staticFunc()}} expected-error {{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   static func subject_staticFunc()
 }
 
@@ -396,7 +396,7 @@ extension subject_class1 {}
 // expected-warning@-1 {{extension with Objective-C category name 'ConflictingName' conflicts with previous extension with the same category name; this is an error in the Swift 6 language mode}}
 
 protocol nonObjCProtocol {
-  @objc // bad-access-note-move{{nonObjCProtocol.objcRequirement()}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{nonObjCProtocol.objcRequirement()}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   func objcRequirement()
 }
 
@@ -2236,24 +2236,24 @@ class Load3 {
 // Members of protocol extensions cannot be @objc
 
 extension PlainProtocol {
-  @objc // bad-access-note-move{{PlainProtocol.property}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{PlainProtocol.property}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   var property: Int { return 5 }
 
-  @objc // bad-access-note-move{{PlainProtocol.subscript(_:)}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{PlainProtocol.subscript(_:)}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   subscript(x: Int) -> Class_ObjC1 { return Class_ObjC1() }
 
-  @objc // bad-access-note-move{{PlainProtocol.fun()}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{PlainProtocol.fun()}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   func fun() { }
 }
 
 extension Protocol_ObjC1 {
-  @objc // bad-access-note-move{{Protocol_ObjC1.property}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{Protocol_ObjC1.property}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   var property: Int { return 5 }
 
-  @objc // bad-access-note-move{{Protocol_ObjC1.subscript(_:)}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{Protocol_ObjC1.subscript(_:)}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   subscript(x: Int) -> Class_ObjC1 { return Class_ObjC1() }
 
-  @objc // bad-access-note-move{{Protocol_ObjC1.fun()}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, and concrete extensions of classes}}
+  @objc // bad-access-note-move{{Protocol_ObjC1.fun()}} expected-error{{'@objc' can only be used with members of classes, '@objc' protocols, concrete extensions of classes and global functions}}
   func fun() { }
 }
 
