@@ -79,10 +79,10 @@ enum CDeclAndObjC: CInt { case A, B }
 func TwoCDecls() {}
 
 class Foo {
-  @cdecl("Foo_foo") // expected-error{{@cdecl can only be applied to global functions}}
+  @cdecl("Foo_foo") // expected-error{{'@cdecl' can only be applied to global functions}}
   func foo(x: Int) -> Int { return x }
 
-  @cdecl("Foo_foo_2") // expected-error{{@cdecl can only be applied to global functions}}
+  @cdecl("Foo_foo_2") // expected-error{{'@cdecl' can only be applied to global functions}}
   static func foo(x: Int) -> Int { return x }
 
   @cdecl("Foo_init") // expected-error{{'@cdecl' attribute cannot be applied to this declaration}}

@@ -2084,7 +2084,7 @@ WARNING(wrap_objc_implementation_will_become_error,none,
         (DiagnosticInfo *))
 
 ERROR(cdecl_not_at_top_level,none,
-      "%0 can only be applied to global functions", (DeclAttribute))
+      "'%0' can only be applied to global functions", (DeclAttribute))
 ERROR(cdecl_empty_name,none,
       "%0 symbol name cannot be empty", (DeclAttribute))
 ERROR(cdecl_throws,none,
