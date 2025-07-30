@@ -1,6 +1,8 @@
 // RUN: %target-typecheck-verify-swift -I %S/Inputs/broken-modules
 import BrokenAPINotes
 
+// REQUIRES: rdar157124309
+
 func testBrokenSwiftName(x: inout ZXSpectrum) {
   _ = x.accumulator
   x.accumulator = 0

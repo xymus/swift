@@ -6,6 +6,8 @@
 // REQUIRES: executable_test
 // REQUIRES: OS=macosx
 
+// REQUIRES: rdar157124309
+
 import AppKit
 
 let image = NSImage(named: NSImage.Name.trashEmpty)

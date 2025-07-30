@@ -9,6 +9,8 @@
 // REQUIRES: executable_test
 // REQUIRES: OS=macosx
 
+// REQUIRES: rdar157124309
+
 import AppKit
 import StdlibUnittest
 
