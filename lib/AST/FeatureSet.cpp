@@ -321,8 +321,15 @@ static bool usesFeatureClosureBodyMacro(Decl *decl) {
 }
 
 static bool usesFeatureCDecl(Decl *decl) {
+  // Non-underscored @cdecl.
   auto attr = decl->getAttrs().getAttribute<CDeclAttr>();
-  return attr && !attr->Underscored;
+  if (attr && !attr->Underscored)
+    return true;
+
+  // @objc on global functions.
+  return decl->getAttrs().hasAttribute<ObjCAttr>() &&
+         isa<AbstractFunctionDecl>(decl) &&
+         !decl->getDeclContext()->isTypeContext();
 }
 
 UNINTERESTING_FEATURE(StrictMemorySafety)
