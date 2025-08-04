@@ -1298,8 +1298,8 @@ std::string SILDeclRef::mangle(ManglingKind MKind) const {
     }
 
     // Use a given cdecl name for native-to-foreign thunks.
-    if (getDecl()->getAttrs().hasAttribute<CDeclAttr>())
-      if (isNativeToForeignThunk()) {
+    if (auto *AFD = dyn_cast<AbstractFunctionDecl>(getDecl()))
+      if (AFD->getCDeclKind() && isNativeToForeignThunk()) {
         // If this is an @implementation @_cdecl, mangle it like the clang
         // function it implements.
         if (auto objcInterface = getDecl()->getImplementedObjCDecl()) {

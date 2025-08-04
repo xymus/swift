@@ -8199,9 +8199,10 @@ public:
   /// instance method.
   bool isObjCInstanceMethod() const;
 
-  /// Get the foreign language targeted by a @cdecl-style attribute, if any.
-  /// Used to abstract away the change in meaning of @cdecl vs @_cdecl while
-  /// formalizing the attribute.
+  /// Get the foreign language targeted by a @cdecl-style function.
+  ///
+  /// Functions marked with @cdecl target C, while @objc and @_cdecl target
+  /// Objective-C.
   std::optional<ForeignLanguage> getCDeclKind() const;
 
   /// Determine whether the name of an argument is an API name by default

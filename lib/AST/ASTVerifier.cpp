@@ -3335,7 +3335,7 @@ public:
       }
 
       if (AFD->getForeignErrorConvention()
-          && !AFD->isObjC() && !AFD->getAttrs().hasAttribute<CDeclAttr>()) {
+          && !AFD->isObjC() && !AFD->getCDeclKind()) {
         Out << "foreign error convention on non-@objc, non-@_cdecl function\n";
         AFD->dump(Out);
         abort();

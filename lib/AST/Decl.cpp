@@ -10652,11 +10652,18 @@ bool AbstractFunctionDecl::isObjCInstanceMethod() const {
 
 std::optional<ForeignLanguage> AbstractFunctionDecl::getCDeclKind() const {
   auto attr = getAttrs().getAttribute<CDeclAttr>();
-  if (!attr)
-    return std::nullopt;
+  if (attr) {
+    return attr->Underscored ? ForeignLanguage::ObjectiveC
+                             : ForeignLanguage::C;
+  }
 
-  return attr->Underscored ? ForeignLanguage::ObjectiveC
-                           : ForeignLanguage::C;
+  if (!getDeclContext()->isTypeContext()) {
+    auto objcAttr = getAttrs().getAttribute<ObjCAttr>();
+    if (objcAttr)
+      return ForeignLanguage::ObjectiveC;
+  }
+
+  return std::nullopt;
 }
 
 bool AbstractFunctionDecl::needsNewVTableEntry() const {

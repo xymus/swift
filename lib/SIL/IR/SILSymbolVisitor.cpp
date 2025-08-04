@@ -499,7 +499,7 @@ public:
       Visitor.addDynamicFunction(AFD, *dynKind);
     }
 
-    if (AFD->getAttrs().hasAttribute<CDeclAttr>()) {
+    if (AFD->getCDeclKind()) {
       // A @_cdecl("...") function has an extra symbol, with the name from the
       // attribute.
       addFunction(SILDeclRef(AFD).asForeign());

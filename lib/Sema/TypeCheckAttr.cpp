@@ -5631,7 +5631,7 @@ void TypeChecker::addImplicitDynamicAttribute(Decl *D) {
     if (FD->isDeferBody())
       return;
     // Don't add dynamic to functions with a cdecl.
-    if (FD->getAttrs().hasAttribute<CDeclAttr>())
+    if (FD->getCDeclKind())
       return;
     // Don't add dynamic to local function definitions.
     if (!FD->getDeclContext()->isTypeContext() &&
