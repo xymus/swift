@@ -3162,7 +3162,8 @@ getForeignRepresentable(Type type, ForeignLanguage language,
   }
 
   // @cdecl enums are representable in C and Objective-C.
-  if (nominal->getAttrs().getAttribute<CDeclAttr>()) {
+  auto ED = dyn_cast<EnumDecl>(nominal);
+  if (ED && ED->isCDeclEnum()) {
     return { ForeignRepresentableKind::Trivial, nullptr };
   }
 
