@@ -374,6 +374,7 @@ void ToolChain::addCommonFrontendArgs(const OutputInfo &OI,
                        options::OPT_enable_experimental_concise_pound_file);
   inputArgs.AddLastArg(arguments, options::OPT_access_notes_path);
   inputArgs.AddLastArg(arguments, options::OPT_library_level);
+  inputArgs.AddLastArg(arguments, options::OPT_library_level_actual);
   inputArgs.AddLastArg(arguments, options::OPT_enable_bare_slash_regex);
   inputArgs.AddLastArg(arguments, options::OPT_enable_experimental_cxx_interop);
   inputArgs.AddLastArg(arguments, options::OPT_cxx_interoperability_mode);

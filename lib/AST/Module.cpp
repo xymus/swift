@@ -3323,8 +3323,12 @@ ModuleLibraryLevelRequest::evaluate(Evaluator &evaluator,
     return ctx.LangOpts.LibraryLevel;
 
   } else {
-    // Other Swift modules are SPI if they are from the PrivateFrameworks
-    // folder in the SDK.
+    // Other Swift modules - check if LibraryLevelActual was serialized
+    if (auto actualLevel = module->getLibraryLevelActual()) {
+      return *actualLevel;
+    }
+
+    // Fall back to path-based inference for backward compatibility
     auto modulePath = module->getModuleFilename();
     return fromPrivateFrameworks(modulePath) ?
       LibraryLevel::SPI : LibraryLevel::API;

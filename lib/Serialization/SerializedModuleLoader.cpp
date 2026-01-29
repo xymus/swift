@@ -993,6 +993,9 @@ LoadedFile *SerializedModuleLoaderBase::loadAST(
       M.setHasCxxInteroperability();
       M.setCXXStdlibKind(loadedModuleFile->getCXXStdlibKind());
     }
+    if (auto level = loadedModuleFile->getLibraryLevelActual()) {
+      M.setLibraryLevelActual(*level);
+    }
     if (!loadedModuleFile->getModulePackageName().empty()) {
       M.setPackageName(Ctx.getIdentifier(loadedModuleFile->getModulePackageName()));
     }

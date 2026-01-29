@@ -1384,24 +1384,29 @@ static bool ParseLangArgs(LangOptions &Opts, ArgList &Args,
     Diags.diagnose(SourceLoc(), diag::warn_flag_deprecated,
                    "-disable-swift3-objc-inference");
 
-  if (const Arg *A = Args.getLastArg(OPT_library_level)) {
-    StringRef contents = A->getValue();
-    if (contents == "api") {
-      Opts.LibraryLevel = LibraryLevel::API;
-    } else if (contents == "spi") {
-      Opts.LibraryLevel = LibraryLevel::SPI;
-    } else if (contents == "ipi") {
-      Opts.LibraryLevel = LibraryLevel::IPI;
+  auto parseLibraryLevel = [&Diags](StringRef arg) -> LibraryLevel {
+    if (arg == "api") {
+      return LibraryLevel::API;
+    } else if (arg == "spi") {
+      return LibraryLevel::SPI;
+    } else if (arg == "ipi") {
+      return LibraryLevel::IPI;
+    } else if (arg == "other") {
+      return LibraryLevel::Other;
     } else {
-      Opts.LibraryLevel = LibraryLevel::Other;
-      if (contents != "other") {
-        // Error on unknown library levels.
-        Diags.diagnose(SourceLoc(),
-                       diag::error_unknown_library_level,
-                       contents);
-      }
+      // Error on unknown library levels.
+      Diags.diagnose(SourceLoc(),
+                     diag::error_unknown_library_level,
+                     arg);
+      return LibraryLevel::Other;
     }
-  }
+  };
+
+  if (const Arg *A = Args.getLastArg(OPT_library_level))
+    Opts.LibraryLevel = parseLibraryLevel(A->getValue());
+
+  if (const Arg *A = Args.getLastArg(OPT_library_level_actual))
+    Opts.LibraryLevelActual = parseLibraryLevel(A->getValue());
 
   if (const Arg *A = Args.getLastArg(OPT_package_name)) {
     auto pkgName = A->getValue();

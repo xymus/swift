@@ -244,9 +244,13 @@ class ModuleDecl
 
   mutable Identifier PublicModuleName;
 
-  /// Indicates a version of the Swift compiler used to generate 
+  /// Indicates a version of the Swift compiler used to generate
   /// .swiftinterface file that this module was produced from (if any).
   mutable version::Version InterfaceCompilerVersion;
+
+  /// The actual library level for this module (when imported).
+  /// None means not set (backward compat or not serialized).
+  std::optional<LibraryLevel> LibraryLevelActual;
 
 public:
   /// Produces the components of a given module's full name in reverse order.
@@ -751,6 +755,13 @@ public:
   }
   void setCXXStdlibKind(CXXStdlibKind kind) {
     Bits.ModuleDecl.CXXStdlibKind = static_cast<uint8_t>(kind);
+  }
+
+  std::optional<LibraryLevel> getLibraryLevelActual() const {
+    return LibraryLevelActual;
+  }
+  void setLibraryLevelActual(std::optional<LibraryLevel> level) {
+    LibraryLevelActual = level;
   }
 
   /// \returns true if this module is a system module; note that the StdLib is

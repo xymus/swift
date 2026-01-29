@@ -229,6 +229,11 @@ static bool readOptionsBlock(llvm::BitstreamCursor &cursor,
     case options_block::DEFERRED_CODE_GEN:
       extendedInfo.setDeferredCodeGen(true);
       break;
+    case options_block::LIBRARY_LEVEL_ACTUAL:
+      unsigned rawLevel;
+      options_block::LibraryLevelActualLayout::readRecord(scratch, rawLevel);
+      extendedInfo.setLibraryLevelActual(static_cast<LibraryLevel>(rawLevel));
+      break;
     default:
       // Unknown options record, possibly for use by a future version of the
       // module format.
@@ -1510,6 +1515,7 @@ ModuleFileSharedCore::ModuleFileSharedCore(
       Bits.SerializePackageEnabled = extInfo.serializePackageEnabled();
       Bits.StrictMemorySafety = extInfo.strictMemorySafety();
       Bits.DeferredCodeGen = extInfo.deferredCodeGen();
+      LibraryLevelActual = extInfo.getLibraryLevelActual();
       MiscVersion = info.miscVersion;
       SDKVersion = info.sdkVersion;
       ModuleABIName = extInfo.getModuleABIName();

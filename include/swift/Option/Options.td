@@ -635,8 +635,17 @@ def allow_non_resilient_access : Flag<["-"], "allow-non-resilient-access">,
 def library_level : Separate<["-"], "library-level">,
   MetaVarName<"<level>">,
   Flags<[HelpHidden, FrontendOption, ModuleInterfaceOption]>,
-  HelpText<"Library distribution level 'api', 'spi' or 'other' (the default)">;
+  HelpText<"Intended library distribution level for diagnostics: 'api', 'spi' or 'other' (the default)">;
 def library_level_EQ : Joined<["-"], "library-level=">,
+  MetaVarName<"<level>">,
+  Flags<[HelpHidden, FrontendOption, ModuleInterfaceOption]>,
+  Alias<library_level>;
+
+def library_level_actual : Separate<["-"], "library-level-actual">,
+  MetaVarName<"<level>">,
+  Flags<[HelpHidden, FrontendOption, ModuleInterfaceOption]>,
+  HelpText<"Actual library distribution level: 'api', 'spi' or 'other' (the default)">;
+def library_level_actual_EQ : Joined<["-"], "library-level-actual=">,
   MetaVarName<"<level>">,
   Flags<[HelpHidden, FrontendOption, ModuleInterfaceOption]>,
   Alias<library_level>;

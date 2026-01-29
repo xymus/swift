@@ -5,41 +5,74 @@
 
 /// Prepare the SDK.
 // RUN: cp -r %S/Inputs/public-private-sdk %t/sdk
-// RUN: %target-swift-frontend -emit-module -module-name PublicSwift \
+// RUN: %target-swift-frontend -emit-module -module-name PublicSwift -parse-stdlib \
 // RUN:   %t/sdk/System/Library/Frameworks/PublicSwift.framework/Modules/PublicSwift.swiftmodule/source.swift \
 // RUN:   -o %t/sdk/System/Library/Frameworks/PublicSwift.framework/Modules/PublicSwift.swiftmodule/%target-swiftmodule-name
-// RUN: %target-swift-frontend -emit-module -module-name PrivateSwift \
+// RUN: %target-swift-frontend -emit-module -module-name PrivateSwift -parse-stdlib \
 // RUN:   %t/sdk/System/Library/PrivateFrameworks/PrivateSwift.framework/Modules/PrivateSwift.swiftmodule/source.swift \
 // RUN:   -o %t/sdk/System/Library/PrivateFrameworks/PrivateSwift.framework/Modules/PrivateSwift.swiftmodule/%target-swiftmodule-name
+
+/// Framework using -library-level-actual api for a framework usin symlinks.
+// RUN: %target-swift-frontend -emit-module -module-name ActuallyPublic -parse-stdlib \
+// RUN:   -library-level-actual api \
+// RUN:   %t/sdk/System/Library/PrivateFrameworks/ActuallyPublic.framework/Modules/ActuallyPublic.swiftmodule/source.swift \
+// RUN:   -o %t/sdk/System/Library/PrivateFrameworks/ActuallyPublic.framework/Modules/ActuallyPublic.swiftmodule/%target-swiftmodule-name
+
+/// Framework that is actually private but using library-level api for diagnostics.
+// RUN: %target-swift-frontend -emit-module -module-name ActuallyPrivate -parse-stdlib \
+// RUN:   -library-level api -library-level-actual spi \
+// RUN:   %t/sdk/System/Library/Frameworks/ActuallyPrivate.framework/Modules/ActuallyPrivate.swiftmodule/source.swift \
+// RUN:   -o %t/sdk/System/Library/Frameworks/ActuallyPrivate.framework/Modules/ActuallyPrivate.swiftmodule/%target-swiftmodule-name
 
 /// Expect errors when building a public client.
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
-// RUN:   -library-level api -verify -module-name MainLib
+// RUN:   -library-level api -verify -module-name MainLib -parse-stdlib
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
-// RUN:   -library-level=api -verify -module-name MainLib
+// RUN:   -library-level=api -verify -module-name MainLib -parse-stdlib
+
 
 /// Expect no errors when building an SPI client.
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
-// RUN:   -library-level spi -module-name MainLib
+// RUN:   -library-level spi -module-name MainLib -parse-stdlib
 
 /// The driver should also accept the flag and pass it along.
 // RUN: %target-swiftc_driver -typecheck -sdk %t/sdk %t/PublicImports.swift \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
-// RUN:   -library-level spi -module-name MainLib
+// RUN:   -library-level spi -module-name MainLib -parse-stdlib
 
 /// Expect no errors when building a client with some other library level.
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
-// RUN:   -module-name MainLib
+// RUN:   -module-name MainLib -parse-stdlib
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
-// RUN:   -library-level other -module-name MainLib
+// RUN:   -library-level other -module-name MainLib -parse-stdlib
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
-// RUN:   -library-level ipi -module-name MainLib
+// RUN:   -library-level ipi -module-name MainLib -parse-stdlib
+
+/// Changing the actual library level on the client side has no effect here.
+// RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
+// RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
+// RUN:   -library-level-actual spi -library-level api \
+// RUN:   -verify -module-name MainLib -parse-stdlib
+// RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
+// RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
+// RUN:   -library-level-actual api -library-level spi \
+// RUN:   -module-name MainLib -parse-stdlib
+// RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
+// RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
+// RUN:   -library-level-actual api -module-name MainLib -parse-stdlib
+// RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
+// RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
+// RUN:   -library-level-actual spi -module-name MainLib -parse-stdlib
+// RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PublicImports.swift \
+// RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
+// RUN:   -library-level-actual other -module-name MainLib -parse-stdlib
+
 //--- PublicImports.swift
 import PublicSwift
 import PrivateSwift // expected-error{{private module 'PrivateSwift' is imported publicly from the public module 'MainLib'}}{{1-1=internal }}
@@ -50,10 +83,13 @@ import FullyPrivateClang // expected-error{{private module 'FullyPrivateClang' i
 import LocalClang // expected-error{{private module 'LocalClang' is imported publicly from the public module 'MainLib'}}{{1-1=internal }}
 @_exported import MainLib // expected-warning{{private module 'MainLib' is imported publicly from the public module 'MainLib'}}
 
+import ActuallyPrivate // expected-error{{private module 'ActuallyPrivate' is imported publicly from the public module 'MainLib'}}{{1-1=internal }}
+import ActuallyPublic
+
 /// Expect no errors with implementation-only imports.
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/ImplOnlyImports.swift \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ -module-cache-path %t \
-// RUN:   -library-level api -D IMPL_ONLY_IMPORTS
+// RUN:   -library-level api -D IMPL_ONLY_IMPORTS -parse-stdlib
 //--- ImplOnlyImports.swift
 
 @_implementationOnly import PrivateSwift
@@ -61,11 +97,14 @@ import LocalClang // expected-error{{private module 'LocalClang' is imported pub
 @_implementationOnly import FullyPrivateClang
 @_implementationOnly import LocalClang
 
+@_implementationOnly import ActuallyPrivate
+@_implementationOnly import ActuallyPublic
+
 /// Expect no errors with spi-only imports.
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/SpiOnlyImports.swift \
 // RUN:   -experimental-spi-only-imports -module-cache-path %t \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ \
-// RUN:   -library-level api
+// RUN:   -library-level api -parse-stdlib
 //--- SPIOnlyImports.swift
 
 @_spiOnly import PrivateSwift
@@ -73,20 +112,30 @@ import LocalClang // expected-error{{private module 'LocalClang' is imported pub
 @_spiOnly import FullyPrivateClang
 @_spiOnly import LocalClang
 
+@_spiOnly import ActuallyPrivate
+@_spiOnly import ActuallyPublic
+
 /// Test error message on an unknown library level name.
 // RUN: not %target-swift-frontend -typecheck %t/Empty.swift \
-// RUN:   -library-level ThatsNotALibraryLevel 2>&1 \
+// RUN:   -library-level ThatsNotALibraryLevel -parse-stdlib 2>&1 \
 // RUN:   | %FileCheck %s --check-prefix CHECK-ARG
 // RUN: not %target-swift-frontend -typecheck %t/Empty.swift \
-// RUN:   -library-level=ThatsNotALibraryLevel 2>&1 \
+// RUN:   -library-level=ThatsNotALibraryLevel -parse-stdlib 2>&1 \
+// RUN:   | %FileCheck %s --check-prefix CHECK-ARG
+// RUN: not %target-swift-frontend -typecheck %t/Empty.swift \
+// RUN:   -library-level-actual ThatsNotALibraryLevel -parse-stdlib 2>&1 \
+// RUN:   | %FileCheck %s --check-prefix CHECK-ARG
+// RUN: not %target-swift-frontend -typecheck %t/Empty.swift \
+// RUN:   -library-level-actual=ThatsNotALibraryLevel -parse-stdlib 2>&1 \
 // RUN:   | %FileCheck %s --check-prefix CHECK-ARG
 // CHECK-ARG: error: unknown library level 'ThatsNotALibraryLevel', expected one of 'api', 'spi', 'ipi', or 'other'
+
 //--- Empty.swift
 
 /// Expect no errors in swiftinterfaces.
 // RUN: %target-swift-typecheck-module-from-interface(%t/Client.private.swiftinterface) \
 // RUN: -sdk %t/sdk -module-cache-path %t -F %t/sdk/System/Library/PrivateFrameworks/ \
-// RUN:   -I %t -module-name Client
+// RUN:   -I %t -module-name Client -parse-stdlib
 
 //--- Client.private.swiftinterface
 // swift-interface-format-version: 1.0
@@ -101,10 +150,13 @@ import FullyPrivateClang
 import LocalClang
 @_exported import MainLib
 
+import ActuallyPrivate
+import ActuallyPublic
+
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/InternalImports.swift \
 // RUN:   -module-name MainLib -module-cache-path %t \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ \
-// RUN:   -library-level api -verify
+// RUN:   -library-level api -verify -parse-stdlib
 //--- InternalImports.swift
 internal import PublicSwift
 internal import PrivateSwift
@@ -114,10 +166,13 @@ internal import PublicClang_Private
 internal import FullyPrivateClang
 internal import LocalClang
 
+internal import ActuallyPrivate
+internal import ActuallyPublic
+
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/FileprivateImports.swift \
 // RUN:   -module-name MainLib -module-cache-path %t \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ \
-// RUN:   -library-level api -verify
+// RUN:   -library-level api -verify -parse-stdlib
 //--- FileprivateImports.swift
 fileprivate import PublicSwift
 fileprivate import PrivateSwift
@@ -127,10 +182,13 @@ fileprivate import PublicClang_Private
 fileprivate import FullyPrivateClang
 fileprivate import LocalClang
 
+fileprivate import ActuallyPrivate
+fileprivate import ActuallyPublic
+
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/PrivateImports.swift \
 // RUN:   -module-name MainLib -module-cache-path %t \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ \
-// RUN:   -library-level api -verify
+// RUN:   -library-level api -verify -parse-stdlib
 //--- PrivateImports.swift
 private import PublicSwift
 private import PrivateSwift
@@ -140,10 +198,13 @@ private import PublicClang_Private
 private import FullyPrivateClang
 private import LocalClang
 
+private import ActuallyPrivate
+private import ActuallyPublic
+
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/ExplicitlyPublicImports.swift \
 // RUN:   -module-name MainLib -module-cache-path %t \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ \
-// RUN:   -library-level api -verify
+// RUN:   -library-level api -verify -parse-stdlib
 //--- ExplicitlyPublicImports.swift
 public import PublicSwift
 // expected-warning @-1 {{public import of 'PublicSwift' was not used in public declarations or inlinable code}}{{1-7=internal}}
@@ -160,11 +221,16 @@ public import LocalClang // expected-error{{private module 'LocalClang' is impor
 // expected-warning @-1 {{public import of 'LocalClang' was not used in public declarations or inlinable code}}{{1-7=internal}}
 @_exported public import MainLib // expected-warning{{private module 'MainLib' is imported publicly from the public module 'MainLib'}}{{12-18=internal}}
 
+public import ActuallyPrivate // expected-error{{private module 'ActuallyPrivate' is imported publicly from the public module 'MainLib'}}{{1-7=internal}}
+// expected-warning @-1 {{public import of 'ActuallyPrivate' was not used in public declarations or inlinable code}}{{1-7=internal}}
+public import ActuallyPublic
+// expected-warning @-1 {{public import of 'ActuallyPublic' was not used in public declarations or inlinable code}}{{1-7=internal}}
+
 // RUN: %target-swift-frontend -typecheck -sdk %t/sdk %t/ImplictlyInternalImports.swift \
 // RUN:   -module-name MainLib -module-cache-path %t \
 // RUN:   -F %t/sdk/System/Library/PrivateFrameworks/ \
 // RUN:   -enable-upcoming-feature InternalImportsByDefault \
-// RUN:   -library-level api -verify
+// RUN:   -library-level api -verify -parse-stdlib
 //--- ImplictlyInternalImports.swift
 public import PublicSwift
 // expected-warning @-1 {{public import of 'PublicSwift' was not used in public declarations or inlinable code}}{{1-8=}}

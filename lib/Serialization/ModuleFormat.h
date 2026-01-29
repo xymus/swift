@@ -58,7 +58,8 @@ const uint16_t SWIFTMODULE_VERSION_MAJOR = 0;
 /// describe what change you made. The content of this comment isn't important;
 /// it just ensures a conflict if two people change the module format.
 /// Don't worry about adhering to the 80-column limit for this line.
-const uint16_t SWIFTMODULE_VERSION_MINOR = 980; // opaque read ownership
+const uint16_t SWIFTMODULE_VERSION_MINOR = 981; // library level actual
+
 
 /// A standard hash seed used for all string hashes in a serialized module.
 ///
@@ -1002,6 +1003,7 @@ namespace options_block {
     SWIFT_INTERFACE_COMPILER_VERSION,
     STRICT_MEMORY_SAFETY,
     DEFERRED_CODE_GEN,
+    LIBRARY_LEVEL_ACTUAL,
   };
 
   using SDKPathLayout = BCRecordLayout<
@@ -1104,6 +1106,11 @@ namespace options_block {
 
   using DeferredCodeGenLayout = BCRecordLayout<
     DEFERRED_CODE_GEN
+  >;
+
+  using LibraryLevelActualLayout = BCRecordLayout<
+    LIBRARY_LEVEL_ACTUAL,
+    BCFixed<2>  // 2 bits for 4 enum values (Other=0, IPI=1, SPI=2, API=3)
   >;
 
   using PublicModuleNameLayout = BCRecordLayout<

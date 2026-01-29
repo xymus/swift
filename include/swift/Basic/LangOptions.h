@@ -467,8 +467,18 @@ namespace swift {
     /// [TODO: Clang-type-plumbing] Turn on for feature rollout.
     bool UseClangFunctionTypes = false;
 
-    /// Access or distribution level of the whole module being parsed.
+    /// Intended access or distribution level of the module being parsed.
     LibraryLevel LibraryLevel = LibraryLevel::Other;
+
+    /// Actual access or distribution level of the module being parsed.
+    ///
+    /// Differs from \c LibraryLevel which is sets the local behavior, whereas
+    /// this sets the behavior in clients. Project owners may set the intended
+    /// level api for a library that will be public in the future, but if it's
+    /// currently company internal the actual library level should be spi.
+    /// Inside the compiler we generally want to use the intended library level
+    /// for the local module and the actual library level for imported modules.
+    std::optional<enum LibraryLevel> LibraryLevelActual = std::nullopt;
 
     /// The name of the package this module belongs to.
     std::string PackageName;

@@ -111,6 +111,9 @@ class ModuleFileSharedCore {
   /// - a compiler tag or version if this is a development compiler.
   version::Version SwiftInterfaceCompilerVersion;
 
+  /// The actual library level for this module.
+  std::optional<LibraryLevel> LibraryLevelActual;
+
   /// \c true if this module has incremental dependency information.
   bool HasIncrementalInfo = false;
 

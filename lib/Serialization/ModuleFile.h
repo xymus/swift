@@ -606,6 +606,10 @@ public:
     return Core->SwiftInterfaceCompilerVersion;
   }
 
+  std::optional<LibraryLevel> getLibraryLevelActual() const {
+    return Core->LibraryLevelActual;
+  }
+
   ArrayRef<StringRef> getAllowableClientNames() const {
     return Core->AllowableClientNames;
   }

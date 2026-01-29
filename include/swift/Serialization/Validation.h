@@ -29,6 +29,7 @@ namespace swift {
 
 class ModuleFile;
 enum class ResilienceStrategy : unsigned;
+enum class LibraryLevel : uint8_t;
 
 namespace serialization {
 
@@ -127,6 +128,7 @@ class ExtendedValidationInfo {
   StringRef ExportAsName;
   StringRef PublicModuleName;
   CXXStdlibKind CXXStdlib;
+  std::optional<LibraryLevel> LibraryLevelActual;
   version::Version SwiftInterfaceCompilerVersion;
   struct {
     unsigned ArePrivateImportsEnabled : 1;
@@ -265,6 +267,12 @@ public:
   CXXStdlibKind getCXXStdlibKind() const { return CXXStdlib; }
   void setCXXStdlibKind(CXXStdlibKind kind) { CXXStdlib = kind; }
 
+  std::optional<LibraryLevel> getLibraryLevelActual() const {
+    return LibraryLevelActual;
+  }
+  void setLibraryLevelActual(LibraryLevel level) {
+    LibraryLevelActual = level;
+  }
   version::Version getSwiftInterfaceCompilerVersion() const {
     return SwiftInterfaceCompilerVersion;
   }
