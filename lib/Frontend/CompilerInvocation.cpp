@@ -1201,6 +1201,9 @@ static bool ParseLangArgs(LangOptions &Opts, ArgList &Args,
       = A->getOption().matches(OPT_enable_access_control);
   }
 
+  if (Args.hasArg(OPT_disable_implicit_spi))
+    Opts.EnableImplicitSPI = false;
+
   Opts.EnableWorkaroundBrokenModules
     &= !Args.hasArg(OPT_disable_workaround_broken_modules);
 

@@ -3135,7 +3135,10 @@ bool SourceFile::isModuleImportedPreconcurrency(
   return false;
 }
 
-bool shouldImplicitImportAsSPI(ArrayRef<Identifier> spiGroups) {
+bool shouldImplicitImportAsSPI(ArrayRef<Identifier> spiGroups,
+                               const LangOptions &langOpts) {
+  if (!langOpts.EnableImplicitSPI)
+    return false;
   for (auto group : spiGroups) {
     if (group.empty())
       return true;
@@ -3150,7 +3153,8 @@ bool SourceFile::isImportedAsSPI(const ValueDecl *targetDecl) const {
   // Objective-C SPIs are always imported implicitly.
   if (targetDecl->hasClangNode())
     return !targetDecl->getSPIGroups().empty();
-  if (shouldImplicitImportAsSPI(targetDecl->getSPIGroups()))
+  if (shouldImplicitImportAsSPI(targetDecl->getSPIGroups(),
+                                getASTContext().LangOpts))
     return true;
 
   if (hasTestableOrPrivateImport(AccessLevel::Public, targetDecl, PrivateOnly))
@@ -3171,7 +3175,7 @@ bool SourceFile::isImportedAsSPI(const ValueDecl *targetDecl) const {
 bool ModuleDecl::isImportedAsSPI(const AbstractSpecializeAttr *attr,
                                  const ValueDecl *targetDecl) const {
   auto declSPIGroups = attr->getSPIGroups();
-  if (shouldImplicitImportAsSPI(declSPIGroups))
+  if (shouldImplicitImportAsSPI(declSPIGroups, getASTContext().LangOpts))
     return true;
 
   auto targetModule = targetDecl->getModuleContext();
@@ -3188,7 +3192,7 @@ bool ModuleDecl::isImportedAsSPI(const AbstractSpecializeAttr *attr,
 
 bool ModuleDecl::isImportedAsSPI(Identifier spiGroup,
                                  const ModuleDecl *fromModule) const {
-  if (shouldImplicitImportAsSPI({spiGroup}))
+  if (shouldImplicitImportAsSPI({spiGroup}, getASTContext().LangOpts))
     return true;
 
   llvm::SmallSetVector<Identifier, 4> importedSPIGroups;

@@ -217,6 +217,9 @@ namespace swift {
     /// Should access control be respected?
     bool EnableAccessControl = true;
 
+    /// Should anonymous SPI declarations be available without a matching import?
+    bool EnableImplicitSPI = true;
+
     /// Enable loading a package interface if both client and depdency module are in the
     /// same package determined by `package-name` flag.
     bool EnablePackageInterfaceLoad = false;

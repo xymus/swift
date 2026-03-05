@@ -612,6 +612,8 @@ def disable_access_control : Flag<["-"], "disable-access-control">,
   HelpText<"Don't respect access control restrictions">;
 def enable_access_control : Flag<["-"], "enable-access-control">,
   HelpText<"Respect access control restrictions">;
+def disable_implicit_spi : Flag<["-"], "disable-implicit-spi">,
+  HelpText<"Don't implicitly allow access to anonymous SPI declarations">;
 
 def code_complete_inits_in_postfix_expr : Flag<["-"], "code-complete-inits-in-postfix-expr">,
   HelpText<"Include initializers when completing a postfix expression">;
