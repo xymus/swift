@@ -5439,11 +5439,8 @@ static bool checkAccessUsingAccessScopes(const DeclContext *useDC,
   if (!useDC)
     return true;
   // Check SPI access
-  if (!VD->isSPI())
-    return true;
   auto useSF = dyn_cast<SourceFile>(useDC->getModuleScopeContext());
-  return !useSF || useSF->isImportedAsSPI(VD) ||
-         VD->getDeclContext()->getParentModule() == useDC->getParentModule();
+  return !useSF || useSF->isAllowedBySPI(VD);
 }
 
 /// Checks if \p VD is an ObjC member implementation:
@@ -5574,12 +5571,9 @@ static bool checkAccess(const DeclContext *useDC, const ValueDecl *VD,
   case AccessLevel::Open: {
     if (VD->getASTContext().LangOpts.hasFeature(
             Feature::EnforceSPIOperatorGroup) &&
-        VD->isOperator() && VD->isSPI()) {
-      const DeclContext *useFile = useDC->getModuleScopeContext();
-      if (useFile->getParentModule() == sourceDC->getParentModule())
-        return true;
-      auto *useSF = dyn_cast<SourceFile>(useFile);
-      return !useSF || useSF->isImportedAsSPI(VD);
+        VD->isOperator()) {
+      auto *useSF = dyn_cast<SourceFile>(useDC->getModuleScopeContext());
+      return !useSF || useSF->isAllowedBySPI(VD);
     }
     return true;
   }

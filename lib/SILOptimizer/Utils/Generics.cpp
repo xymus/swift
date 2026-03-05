@@ -3098,16 +3098,9 @@ static bool usePrespecialized(
     if (!SA->isExported())
       continue;
     // Check whether SPI allows using this function.
-    auto spiGroup = SA->getSPIGroup();
-    if (!spiGroup.empty()) {
-      auto currentModule = funcBuilder.getModule().getSwiftModule();
-      auto funcModule = SA->getSPIModule();
-      // Don't use this SPI if the current module does not import the function's
-      // module with @_spi(<spiGroup>).
-      if (currentModule != funcModule &&
-          !currentModule->isImportedAsSPI(spiGroup, funcModule))
-        continue;
-    }
+    auto currentModule = funcBuilder.getModule().getSwiftModule();
+    if (!currentModule->isAllowedBySPI(SA->getSPIGroup(), SA->getSPIModule()))
+      continue;
     // Check whether the availability of the specialization allows for using
     // it. We check the  deployment target or the current functions availability
     // target depending which one is more recent.

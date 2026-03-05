@@ -994,6 +994,15 @@ public:
   // Is \p spiGroup accessible as an explicitly imported SPI from this module?
   bool isImportedAsSPI(Identifier spiGroup, const ModuleDecl *fromModule) const;
 
+  /// Is \p attr's SPI access allowed from this module?
+  /// Returns false if it's SPI and not imported as such.
+  bool isAllowedBySPI(const AbstractSpecializeAttr *attr,
+                      const ValueDecl *targetDecl) const;
+
+  /// Is \p spiGroup from \p fromModule allowed from this module?
+  /// Returns false if it's SPI and not imported as such.
+  bool isAllowedBySPI(Identifier spiGroup, const ModuleDecl *fromModule) const;
+
   /// Is \p module imported as \c @_weakLinked from this module?
   bool isImportedAsWeakLinked(const ModuleDecl *module) const;
 

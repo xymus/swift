@@ -3202,6 +3202,32 @@ bool ModuleDecl::isImportedAsSPI(Identifier spiGroup,
   return importedSPIGroups.count(spiGroup);
 }
 
+bool SourceFile::isAllowedBySPI(const ValueDecl *targetDecl) const {
+  if (!targetDecl->isSPI())
+    return true;
+  if (targetDecl->getModuleContext() == getParentModule())
+    return true;
+  return isImportedAsSPI(targetDecl);
+}
+
+bool ModuleDecl::isAllowedBySPI(const AbstractSpecializeAttr *attr,
+                                const ValueDecl *targetDecl) const {
+  if (attr->getSPIGroups().empty())
+    return true;
+  if (targetDecl->getModuleContext() == this)
+    return true;
+  return isImportedAsSPI(attr, targetDecl);
+}
+
+bool ModuleDecl::isAllowedBySPI(Identifier spiGroup,
+                                const ModuleDecl *fromModule) const {
+  if (spiGroup.empty())
+    return true;
+  if (fromModule == this)
+    return true;
+  return isImportedAsSPI(spiGroup, fromModule);
+}
+
 bool ModuleDecl::isImportedAsWeakLinked(const ModuleDecl *module) const {
   return getASTContext().getImportCache().isWeakImportedBy(module, this);
 }

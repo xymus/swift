@@ -79,14 +79,10 @@ void SILFunctionBuilder::addFunctionAttributes(
       auto *attributedFuncDecl = constant.getAbstractFunctionDecl();
       auto *targetFunctionDecl = SA->getTargetFunctionDecl(attributedFuncDecl);
       // Filter out _spi.
+      if (!M.getSwiftModule()->isAllowedBySPI(SA, attributedFuncDecl))
+        continue;
       auto spiGroups = SA->getSPIGroups();
       bool hasSPI = !spiGroups.empty();
-      if (hasSPI) {
-        if (attributedFuncDecl->getModuleContext() != M.getSwiftModule() &&
-            !M.getSwiftModule()->isImportedAsSPI(SA, attributedFuncDecl)) {
-          continue;
-        }
-      }
       assert(spiGroups.size() <= 1 &&
              "SIL does not support multiple SPI groups");
       Identifier spiGroupIdent;

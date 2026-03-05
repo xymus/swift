@@ -45,14 +45,10 @@ static void transferSpecializeAttributeTargets(SILModule &M,
   for (auto *A : vd->getAttrs().getAttributes<AbstractSpecializeAttr>()) {
     auto *SA = cast<AbstractSpecializeAttr>(A);
     // Filter _spi.
+    if (!M.getSwiftModule()->isAllowedBySPI(SA, vd))
+      continue;
     auto spiGroups = SA->getSPIGroups();
     auto hasSPIGroup = !spiGroups.empty();
-    if (hasSPIGroup) {
-      if (vd->getModuleContext() != M.getSwiftModule() &&
-          !M.getSwiftModule()->isImportedAsSPI(SA, vd)) {
-        continue;
-      }
-    }
     if (auto *targetFunctionDecl = SA->getTargetFunctionDecl(vd)) {
       auto kind = SA->getSpecializationKind() ==
                           SpecializeAttr::SpecializationKind::Full

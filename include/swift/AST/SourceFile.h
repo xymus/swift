@@ -479,6 +479,10 @@ public:
   // Is \p targetDecl accessible as an explicitly imported SPI from this file?
   bool isImportedAsSPI(const ValueDecl *targetDecl) const;
 
+  /// Is \p targetDecl's SPI access allowed from this file?
+  /// Returns false if it's SPI and not imported as such.
+  bool isAllowedBySPI(const ValueDecl *targetDecl) const;
+
   bool shouldCrossImport() const;
 
   /// Register a separately-imported overlay as shadowing the module that
