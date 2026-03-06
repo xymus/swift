@@ -3203,27 +3203,32 @@ bool ModuleDecl::isImportedAsSPI(Identifier spiGroup,
 }
 
 bool SourceFile::isAllowedBySPI(const ValueDecl *targetDecl) const {
-  if (!targetDecl->isSPI())
-    return true;
-  if (targetDecl->getModuleContext() == getParentModule())
+  auto *targetModule = targetDecl->getModuleContext();
+  bool isSPI = targetDecl->isSPI() ||
+               (!getASTContext().LangOpts.EnableImplicitSPI &&
+                targetModule->getLibraryLevel() == LibraryLevel::SPI);
+  if (!isSPI || targetModule == this->getParentModule())
     return true;
   return isImportedAsSPI(targetDecl);
 }
 
 bool ModuleDecl::isAllowedBySPI(const AbstractSpecializeAttr *attr,
                                 const ValueDecl *targetDecl) const {
-  if (attr->getSPIGroups().empty())
-    return true;
-  if (targetDecl->getModuleContext() == this)
+  auto *targetModule = targetDecl->getModuleContext();
+  bool isSPI = !attr->getSPIGroups().empty() ||
+               (!getASTContext().LangOpts.EnableImplicitSPI &&
+                targetModule->getLibraryLevel() == LibraryLevel::SPI);
+  if (!isSPI || targetModule == this)
     return true;
   return isImportedAsSPI(attr, targetDecl);
 }
 
 bool ModuleDecl::isAllowedBySPI(Identifier spiGroup,
                                 const ModuleDecl *fromModule) const {
-  if (spiGroup.empty())
-    return true;
-  if (fromModule == this)
+  bool isSPI = !spiGroup.empty() ||
+               (!getASTContext().LangOpts.EnableImplicitSPI &&
+                fromModule->getLibraryLevel() == LibraryLevel::SPI);
+  if (!isSPI || fromModule == this)
     return true;
   return isImportedAsSPI(spiGroup, fromModule);
 }
